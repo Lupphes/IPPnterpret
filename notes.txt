@@ -1,0 +1,26 @@
+// ukoncovani - exit!
+
+/// zacatek nacitani
+
+// while($line = fgetc(STDIN)) {
+    // echo($line);
+    // Zde testujeme jednotlive lines
+    // if jestli line == IPP code true
+
+    //$split = explode('', $line)
+
+    // switch(strtoupper - protoze stuff)
+    // a jedes scanner a overujes syntax trochu taky
+    // case DEFVAR
+    // if preg_match( *regex*, split[1])
+    // case return
+    // case break
+    // echo... lalala
+    
+
+
+
+
+// }
+
+// parser.php < test.IPPcode21
