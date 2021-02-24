@@ -1,9 +1,9 @@
 #!/usr/bin/env php
 <?php
-
-function argumentsValidation() {
-    $shortopts  = "h";
-    $longopts  = array("help");
+function argumentsValidation()
+{
+    $shortopts = "h";
+    $longopts = ["help"];
 
     $options = getopt($shortopts, $longopts, $restindex);
     $keys = array_keys($options);
@@ -15,219 +15,328 @@ function argumentsValidation() {
                 case "help":
                     echo "Help msg\n";
                     exit(0);
-                default: 
+                default:
                     echo "10"; // ignore this thats debug
                     exit(10);
             }
         }
-    } else {
+    }
+    else {
         echo "10"; // ignore this thats debug
-        exit(10); 
+        exit(10);
     }
 }
 
-
-function commentsTrim($line) {
+function commentsTrim($line)
+{
     if (($commentTrim = strpos($line, "#")) !== false) {
         $line = substr($line, 0, $commentTrim);
     }
     return rtrim($line);
+
 }
 
-function headerValidation($line, $header) {
+function headerValidation($line, $header)
+{
     // $headerPattern = ".IPPcode21";
     if (preg_match("/^.ippcode21$/i", $line)) {
         $header = true;
-    } else {
+    }
+    else {
         echo "\n21"; // ignore this thats debug
         exit(21);
     }
     return $header;
 }
 
-
-function generateFile($xml) {
+function generateFile($xml)
+{
     file_put_contents('result.xml', $xml->outputMemory());
 }
 
-function main() {
-    // $enum = Array(
-    //     "MOVE" => "MOVE",
-    //     "CREATEFRAME" => "CREATEFRAME",
-    //     "PUSHFRAME" => "PUSHFRAME",
-    //     "POPFRAME" => "POPFRAME",
-    //     "DEFVAR" => "DEFVAR",
-    //     "CALL" => "CALL",
-    //     "RETURN" => "RETURN",
-    //     "PUSHS" => "PUSHS",
-    //     "POPS" => "POPS",
-    //     "ADD" => "ADD",
-    //     "SUB" => "SUB",
-    //     "MUL" => "MUL",
-    //     "IDIV" => "IDIV",
-    //     "LT" => "LT",
-    //     "GT" => "GT",
-    //     "EQ" => "EQ",
-    //     "AND" => "AND",
-    //     "OR" => "OR",
-    //     "NOT" => "NOT",
-    //     "INT2CHAR" => "INT2CHAR",
-    //     "STRI2INT" => "STRI2INT",
-    //     "READ" => "READ",
-    //     "WRITE" => "WRITE",
-    //     "CONCAT" => "CONCAT",
-    //     "STRLEN" => "STRLEN",
-    //     "GETCHAR" => "GETCHAR",
-    //     "SETCHAR" => "SETCHAR",
-    //     "TYPE" => "TYPE",
-    //     "LABEL" => "LABEL",
-    //     "JUMP" => "JUMP",
-    //     "JUMPIFEQ" => "JUMPIFEQ",
-    //     "JUMPIFNEQ" => "JUMPIFNEQ",
-    //     "EXIT" => "EXIT",
-    //     "DPRINT" => "DPRINT",
-    //     "BREAK" => "BREAK"
-    //     );
+function atSlitter($xml, $split) {
+    $argumets = explode('@', $split, 2);
+    switch (count($argumets)) {
+        case 1:
+            if (substr($argumets[1], -1) == '@') {
+                $argumets[2] = "";
+            } else {
+                var_dump($argumets);
+                echo "\n23"; // ignore this thats debug
+                exit(23);
+            }
+            break;
+        case 2:
+            break;
+        default:
+            echo "\n23"; // ignore this thats debug
+            exit(23);
+    }
+    if ($argumets[0] == "GF" || $argumets[0] == "LF" || $argumets[0] == "TF") {
+        $xml->writeAttribute("type", "var");
+        $xml->text("$argumets[0]@$argumets[1]");
+    } else {
+        $xml->writeAttribute("type", $argumets[0]);
+        $xml->text($argumets[1]);
+    }
+    return;
+}
 
 
 
-
-    $header = false;
+function main()
+{
     $i = 0;
+    $header = false;
+    $types = array("int", "bool", "string", "nil", "label", "type", "var");
+    $usedLabels = array();
     argumentsValidation();
     $xml = new XMLWriter();
     $xml->openMemory();
     $xml->startDocument("1.0", "UTF-8");
-
-
+    $xml->setIndent(true);
 
     while ($line = fgets(STDIN)) {
         $line = commentsTrim($line);
-        if ($line == "") { continue; }
+        if ($line == "") {
+            continue;
+        }
         if (!$header) {
             $header = headerValidation($line, $header);
             $xml->startElement("program");
             $xml->writeAttribute("language", "IPPcode21");
             continue;
         }
-        // echo $line."\n";  // ignore this thats debug
-        $xml->startElement("instruction");
-        $xml->writeAttribute("order", ++$i);
-        $split = explode(' ', $line);
-        // var_dump($line);
-        $xml->writeAttribute("opcode", strtoupper($split[0]));
+        $split = preg_split("/[\s]+/", $line);
+        $numberOfArguments = count($split);
 
-        switch ($line) {
-            case "MOVE":
-                echo "yet to be implemented";
-                break;
-            case "CREATEFRAME":
-                echo "yet to be implemented";
-                break;
-            case "PUSHFRAME":
-                echo "yet to be implemented";
-                break;
-            case "POPFRAME":
-                echo "yet to be implemented";
-                break;
-            case "DEFVAR":
-                echo "yet to be implemented";
-                break;
-            case "CALL":
-                echo "yet to be implemented";
-                break;
-            case "RETURN":
-                echo "yet to be implemented";
-                break;
-            case "PUSHS":
-                echo "yet to be implemented";
-                break;
-            case "POPS":
-                echo "yet to be implemented";
-                break;
-            case "ADD":
-                echo "yet to be implemented";
-                break;
-            case "SUB":
-                echo "yet to be implemented";
-                break;
-            case "MUL":
-                echo "yet to be implemented";
-                break;
-            case "IDIV":
-                echo "yet to be implemented";
-                break;
-            case "LT":
-            case "GT":
-            case "EQ":
-                echo "yet to be implemented";
-                break;
-            case "AND":
-            case "OR":
-            case "NOT":
-                echo "yet to be implemented";
-                break;
-            case "INT2CHAR":
-                echo "yet to be implemented";
-                break;
-            case "STRI2INT":
-                echo "yet to be implemented";
-                break;
-            case "READ":
-                echo "yet to be implemented";
-                break;
-            case "WRITE":
-                echo "yet to be implemented";
-                break;
-            case "CONCAT":
-                echo "yet to be implemented";
-                break;
-            case "STRLEN":
-                echo "yet to be implemented";
-                break;
-            case "GETCHAR":
-                echo "yet to be implemented";
-                break;
-            case "SETCHAR":
-                echo "yet to be implemented";
-                break;
-            case "TYPE":
-                echo "yet to be implemented";
-                break;
-            case "LABEL":
-                echo "yet to be implemented";
-                break;
-            case "JUMP":
-                echo "yet to be implemented";
-                break;
-            case "JUMPIFEQ":
-                echo "yet to be implemented";
-                break;
-            case "JUMPIFNEQ":
-                echo "yet to be implemented";
-                break;
-            case "EXIT":
-                echo "yet to be implemented";
-                break;
-            case "DPRINT":
-                echo "yet to be implemented";
-                break;
-            case "BREAK":
-                echo "yet to be implemented";
-                break;
+        foreach ($split as $index => $argument) {
+            if ($index == 0) {
+                $xml->startElement("instruction");
+                $xml->writeAttribute("order", ++$i);
+                $xml->writeAttribute("opcode", strtoupper($split[$index]));
+                continue;
+            } else {
+                $xml->startElement("arg".($index));
+            
+
+            switch ($split[0]) {
+                case "NOT":
+                case "MOVE":
+                case "INT2CHAR":
+                case "STRLEN":
+                case "TYPE": // ⟨var⟩ ⟨symb⟩ 3
+                     if (!($numberOfArguments == 3)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    atSlitter($xml, $split[$index]);
+                    break;
+                case "CREATEFRAME":
+                    if (!($numberOfArguments == 1)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "PUSHFRAME":
+                    if (!($numberOfArguments == 1)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "POPFRAME":
+                    if (!($numberOfArguments == 1)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "DEFVAR":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    atSlitter($xml, $split[$index]);
+                    break;
+                case "CALL":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "RETURN":
+                    if (!($numberOfArguments == 1)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "PUSHS":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "POPS":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "ADD":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "SUB":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "MUL":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "IDIV":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "LT":
+                case "GT":
+                case "EQ":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "AND":
+                case "OR":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "STRI2INT":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "READ":
+                    if (!($numberOfArguments == 3)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "WRITE":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    atSlitter($xml, $split[$index]);
+                    break;
+                case "CONCAT":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+					atSlitter($xml, $argument);
+                    break;
+                case "GETCHAR":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "SETCHAR":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "LABEL":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    $xml->writeAttribute("type", $types[4]);
+                    if (in_array($split[1], $usedLabels)) {
+                        echo "\n52"; // ignore this thats debug
+                        exit(52);
+                    } else {
+                        array_push($usedLabels, $split[1]);
+                    }
+                    $xml->text($split[1]);
+                    break;
+                case "JUMP":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    $xml->writeAttribute("type", $types[4]);
+                    $xml->text($split[1]);
+                    break;
+                case "JUMPIFEQ":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+					switch ($index) {
+						case 1:
+							$xml->writeAttribute("type", "label");
+							$xml->text($argument);
+							break;
+						case 2:
+							atSlitter($xml, $split[2]);
+							break;
+						case 3:
+							atSlitter($xml, $split[3]);
+							break;
+					}                   
+                    break;
+                case "JUMPIFNEQ":
+                    if (!($numberOfArguments == 4)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "EXIT":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "DPRINT":
+                    if (!($numberOfArguments == 2)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                case "BREAK":
+                    if (!($numberOfArguments == 1)) {
+                        echo "\n22"; // ignore this thats debug
+                        exit(22);
+                    }
+                    break;
+                }
+            }
+            $xml->endElement();
         }
         $xml->endElement();
+        
     }
     $xml->endElement();
     $xml->endDocument();
 
     generateFile($xml);
-
 }
-
-
 
 ini_set("display_errors", "stderr");
 main();
+
 
 ?>
