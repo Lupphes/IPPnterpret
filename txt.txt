@@ -1,12 +1,51 @@
 .IPPcode21
-DEFVAR GF@counter
 MOVE GF@counter string@ #Inicializace proměnné na prázdný řetězec
-#Jednoduchá iterace, dokud nebude splněna zadaná podmínka
+CREATEFRAME
+PUSHFRAME
+POPFRAME 
+DEFVAR GF@counter
+CALL funkce_foo
+RETURN
+
+PUSHS int@145
+POPS TF@promenna
+
+ADD LF@sum int@-145 bool@true
+SUB GF@sub string@asdf nil@nil
+MUL GF@sub bool@false nil@nil
+IDIV GF@sub bool@false int@1234
+
+AND LF@sum int@-145 bool@true
+OR GF@sub string@asdf nil@nil
+NOT GF@sub bool@false
+
+INT2CHAR TF@asdf int@75
+STRI2INT TF@asdf string@asdfb int@4
+
+READ GF@ahoj string
+write string@ahoj
+
+CONCAT GF@counter GF@counter string@a
+strlen LF@count string@ounou...
+
+getchar GF@char int@25 int@257
+SETCHAR TF@sasdt nil@nil nil@nil
+
+TYPE TF@counter string@whadup
+
+JUMPIFNEQ end GF@counter string@aaa
+
+EXIT int@25
+
+DPRINT TF@counter
+
+break
+
+#Jednoduchá iterace , dokud nebude splněna zadaná podmínka
 LABEL while
 JUMPIFEQ end GF@counter string@aaa
 WRITE string@Proměnná\032GF@counter\032obsahuje\032
 WRITE GF@counter
 WRITE string@\010
-CONCAT GF@counter GF@counter string@a
 JUMP while
 LABEL end
