@@ -85,8 +85,6 @@ function atSlitter($xml, $split)
     return;
 }
 
-
-
 function main()
 {
     $i = 0;
@@ -137,9 +135,9 @@ function main()
                         break;
                     case "RETURN":
                     case "CREATEFRAME":
-                    case "PUSHFRAME": 
-                    case "POPFRAME": 
-                    case "BREAK":    // No arguments
+                    case "PUSHFRAME":
+                    case "POPFRAME":
+                    case "BREAK": // No arguments
                         if (!($numberOfArguments == 1)) {
                             echo "\n23"; // ignore this thats debug
                             exit(23);
@@ -149,7 +147,7 @@ function main()
                     case "DEFVAR": // ⟨var⟩
                     // --------------------------
                     case "WRITE":
-                    case "PUSHS": 
+                    case "PUSHS":
                     case "EXIT":
                     case "DPRINT": // ⟨symb⟩
                         if (!($numberOfArguments == 2)) {
@@ -159,7 +157,7 @@ function main()
                         atSlitter($xml, $split[$index]);
                         break;
                     case "JUMP":
-                    case "CALL": 
+                    case "CALL":
                     case "LABEL": // ⟨label⟩
                         if (!($numberOfArguments == 2)) {
                             echo "\n23"; // ignore this thats debug
@@ -183,10 +181,10 @@ function main()
                     case "GT":
                     case "EQ":
                     case "AND":
-                    case "OR": 
-                    case "STRI2INT": 
-                    case "CONCAT": 
-                    case "GETCHAR":    
+                    case "OR":
+                    case "STRI2INT":
+                    case "CONCAT":
+                    case "GETCHAR":
                     case "SETCHAR":
                         // ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩
                         if (!($numberOfArguments == 4)) {
@@ -228,7 +226,7 @@ function main()
                         }
                         break;
                     default:
-                    echo $split[0]."\n";
+                        echo $split[0] . "\n";
                         echo "\n22"; // ignore this thats debug
                         exit(22);
                 }
@@ -246,6 +244,4 @@ function main()
 
 ini_set("display_errors", "stderr");
 main();
-
-
 ?>
