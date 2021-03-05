@@ -25,7 +25,6 @@ function argumentsValidation($argv)
         }
     }
 
-    var_dump($parsedArguments);
     $flag = true;
     foreach ($parsedArguments as $key => $value) {
 
@@ -83,7 +82,7 @@ function argumentsValidation($argv)
                 }
                 break;
             case "--parse-only":
-                if ($isParseOnlySet || !($key + 1 < count($parsedArguments) && !preg_match("/^--.*/i", $parsedArguments[$key + 1]))) {
+                if ($isParseOnlySet) {
                     echo "10"; // ignore this thats debug
                     exit(10);
                 }
@@ -148,60 +147,20 @@ function argumentsValidation($argv)
     }
 
     if (!(file_exists($isParseScriptSet) || file_exists($isIntScriptSet) || file_exists($isJexamxmlOnlySet) || file_exists($isJexamcfgOnlySet))) {
-        echo "11"; // ignore this thats debug
-        exit(11);
+        echo "41"; // ignore this thats debug
+        exit(41);
     }
 
-    return array($isDirectorySet, $isRecursiveSet, $isParseScriptSet, $isIntScriptSet, $isParseOnlySet, $isIntOnlySet, $isJexamxmlOnlySet, $isJexamcfgOnlySet);
-}
-
-function main($argv)
-{
-    $arguments = argumentsValidation($argv);
-    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($arguments[0], FilesystemIterator::SKIP_DOTS));
-    $it->setMaxDepth(($arguments[1]) ? -1 : 0);
-    $passed = array();
-    $failed = array();
-
-
-    foreach ($it as $fileName => $fileInfo) {
-        if ($fileInfo->getExtension() == 'src') {
-            $filepath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
-            if (!file_exists($filepath . ".out")) {
-                createFile($filepath . ".out", "");
-            }
-            else if (!file_exists($filepath . ".rc")) {
-                createFile($filepath . ".rc", "0");
-            }
-            else if (!file_exists($filepath . ".in")) {
-                createFile($filepath . ".in", "");
-            }
-
-            $retrunFile = fopen("$filepath.rc", "r") or die("Unable to return code file!");
-            $returnTestValue = fread($retrunFile, filesize("$filepath.rc"));
-            fclose($retrunFile);
-
-            $tempOutput = tmpfile();
-            $pathOutput = stream_get_meta_data($tempOutput)['uri'];
-
-            exec("php $arguments[2] < $fileName > $pathOutput", $output, $return_var);
-            if ($return_var == $returnTestValue) {
-                exec("java -jar $arguments[6] $pathOutput $filepath.out $arguments[7]", $output, $returnVarXML);
-                if ($returnVarXML == 0) {
-                    array_push($passed, array($filepath, $return_var, $returnTestValue, $returnVarXML));
-                }
-                else {
-                    array_push($failed, array($filepath, $return_var, $returnTestValue, $returnVarXML));
-                }
-            }
-            else {
-                array_push($failed, array($filepath, $return_var, $returnTestValue, "–"));
-            }
-            fclose($tempOutput);
-        }
-    }
-    generateWeb($failed, $passed);
-
+    return array(
+        "directoryPath" => $isDirectorySet,
+        "isRecursion" => $isRecursiveSet,
+        "parseScriptPath" => $isParseScriptSet,
+        "interpretScriptPath" => $isIntScriptSet,
+        "isParseOnly" => $isParseOnlySet,
+        "isInterpretOnly" => $isIntOnlySet,
+        "jexamxmlPath" => $isJexamxmlOnlySet,
+        "jexamcfgPath" => $isJexamcfgOnlySet
+    );
 }
 
 function createFile($name, $txt)
@@ -212,59 +171,35 @@ function createFile($name, $txt)
     return;
 }
 
-function generateWeb($failed, $passed)
+function readTestFile($path)
 {
-
-    $failedClass = (count($failed) == 0) ? "" : "failed";
-    $correctClass = (count($passed) == 0) ? "" : "passed";
-    $defaultHTML = "
-    <!doctype html>
-    <html lang='en'>
-    <head>
-        <meta charset='UTF-8'>
-        <title>Test results</title>
-        <style>
-            h3 {
-                margin: 0;
-            }
-            table, th, td {
-                border: 1px solid black;
-                padding: 5px;
-              }
-            .center {
-                text-align: center;
-            }
-            .passed {
-                color: green;
-            }
-            .failed {
-                color: red;
-            }
-        </style>
-    </head>
-    
-    <body>
-    <h1>Test summary</h1>
-    <h3>Number of tests: " . (count($passed) + count($failed)) . "</h3>
-    <h3 class='$correctClass'>Passed: " . count($passed) . "</h3>
-    <h3 class='$failedClass'>Failed: " . count($failed) . "</h3>
-    <h2>Parse.php</h2>
-    " . generateArray($failed, "Failed") . "
-    " . generateArray($passed, "Passed") . "
-    <h2>Interpret.py</h2>
-    <h3>Failed</h3>
-    <h3>Passed</h3>
-    </body>
-    
-    </html>";
-
-    // echo $defaultHTML;
-    generateFile($defaultHTML);
-
-    return;
+    $retrunFile = fopen($path, "r") or die("Unable to return code file!");
+    $readValue = fread($retrunFile, filesize($path));
+    fclose($retrunFile);
+    return $readValue;
 }
 
-function generateArray($array, $name)
+function generateStringExplain($value)
+{
+    $response = "";
+    switch ($value) {
+        case 0:
+            $response = "Two files are identical";
+            break;
+        case 1:
+            $response = "There are some different elements";
+            break;
+        case 2:
+            $response = "There are some deleted elements";
+            break;
+        default:
+            $response = "Either Parameters, Options, XML file or XML parsing error";
+            break;
+    }
+    return $response;
+}
+
+function generateTable($array, $name)
 {
     if (empty($array)) {
         return "";
@@ -296,33 +231,129 @@ function generateArray($array, $name)
     return $table;
 }
 
-
-function generateFile($html)
+function generateWeb($tests)
 {
-    $file = fopen("index.html", "w") or die("Unable to open file!");
-    fwrite($file, $html);
-    fclose($file);
+
+    $correctClass = (count($tests["parse"]["passed"]) == 0) ? "" : "passed";
+    $failedClass = (count($tests["parse"]["failed"]) == 0) ? "" : "failed";
+    $defaultHTML = "
+    <!doctype html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Test results</title>
+        <style>
+            h3 {
+                margin: 0;
+            }
+            table, th, td {
+                border: 1px solid black;
+                padding: 5px;
+              }
+            .center {
+                text-align: center;
+            }
+            .passed {
+                color: green;
+            }
+            .failed {
+                color: red;
+            }
+        </style>
+    </head>
+    
+    <body>
+    <h1>Test summary</h1>
+    <h3>Number of tests: " . $tests["testCount"] . " </h3>
+    <h3 class='$correctClass'>Passed: " . count($tests["parse"]["passed"]) . "</h3>
+    <h3 class='$failedClass'>Failed: " . count($tests["parse"]["failed"]) . "</h3>
+    <h2>Parse.php</h2>
+    " . generateTable($tests["parse"]["passed"], "Failed") . "
+    " . generateTable($tests["parse"]["failed"], "Passed") . "
+    <h2>Interpret.py</h2>
+    <h3>Failed</h3>
+    <h3>Passed</h3>
+    </body>
+    
+    </html>";
+
+    // echo $defaultHTML;
+    createFile("index.html", $defaultHTML);
+
+    return;
 }
 
-function generateStringExplain($value)
+function main($argv)
 {
-    $response = "";
-    switch ($value) {
-        case 0:
-            $response = "Two files are identical";
-            break;
-        case 1:
-            $response = "There are some different elements";
-            break;
-        case 2:
-            $response = "There are some deleted elements";
-            break;
-        default:
-            $response = "Either Parameters, Options, XML file or XML parsing error";
-            break;
+    $arguments = argumentsValidation($argv);
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($arguments["directoryPath"], FilesystemIterator::SKIP_DOTS));
+    $it->setMaxDepth(($arguments["isRecursion"]) ? -1 : 0);
+    $tests = [
+        "testCount" => 0,
+        "parse" => [
+            "passed" => [],
+            "failed" => []
+        ],
+        "interpret" => [
+            "passed" => [],
+            "failed" => []
+        ]
+    ];
+
+    foreach ($it as $fileName => $fileInfo) {
+        if ($fileInfo->getExtension() == 'src') {
+            $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
+            if (!file_exists($filePath . ".out")) {
+                createFile($filePath . ".out", "");
+            }
+            else if (!file_exists($filePath . ".rc")) {
+                createFile($filePath . ".rc", "0");
+            }
+            else if (!file_exists($filePath . ".in")) {
+                createFile($filePath . ".in", "");
+            }
+            $tests["testCount"]++;
+
+            $testedReturnValue = readTestFile("$filePath.rc");
+
+            $tempOutput = tmpfile();
+            $pathOutput = stream_get_meta_data($tempOutput)['uri'];
+            exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
+
+
+            if ($arguments["isParseOnly"]) {
+                if ($returnedValue == $testedReturnValue) {
+                    exec("java -jar " . $arguments["jexamxmlPath"] . " $pathOutput $filePath.out " . $arguments["jexamcfgPath"], $output, $resultXML);
+                    if ($resultXML == 0) {
+                        array_push($tests["parse"]["passed"], array($filePath, $returnedValue, $testedReturnValue, $resultXML));
+                    }
+                    else {
+                        array_push($tests["parse"]["failed"], array($filePath, $returnedValue, $testedReturnValue, $resultXML));
+                    }
+                }
+                else {
+                    array_push($tests["parse"]["failed"], array($filePath, $returnedValue, $testedReturnValue, "–"));
+                }
+            }
+            else if ($arguments["isInterpretOnly"]) {
+                echo "Interpret";
+            }
+            else {
+                if ($returnedValue == $testedReturnValue) {
+                    echo "Interpret with parse";
+                }
+                else {
+                    array_push($tests["interpret"]["failed"], array($filePath, $returnedValue, $testedReturnValue, "–"));
+                }
+            }
+            fclose($tempOutput);
+        }
     }
-    return $response;
+    generateWeb($tests);
+
 }
+
+
 
 main($argv);
 
