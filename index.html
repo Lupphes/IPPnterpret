@@ -1,0 +1,59 @@
+
+    <!doctype html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Test results</title>
+        <style>
+            h3 {
+                margin: 0;
+            }
+            table, th, td {
+                border: 1px solid black;
+                padding: 5px;
+              }
+            .center {
+                text-align: center;
+            }
+            .passed {
+                color: green;
+            }
+            .failed {
+                color: red;
+            }
+        </style>
+    </head>
+    
+    <body>
+    <h1>Test summary</h1>
+    <h3>Number of tests: 2</h3>
+    <h3 class='passed'>Passed: 2</h3>
+    <h3 class=''>Failed: 0</h3>
+    <h2>Parse.php</h2>
+    
+    
+    <h3>Passed</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Return code</th>
+            <th>Compare</th>
+        </tr>
+        </thead>
+        <tbody><tr>
+            <td class='passed'>./tests/both/mine/dokumentace</td>
+            <td class='center'>0/0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='passed'>./tests/both/mine/vojtaKod</td>
+            <td class='center'>0/0</td>
+            <td class='center'>Two files are identical</td>
+        </tr></tbody>
+    </table>
+    <h2>Interpret.py</h2>
+    <h3>Failed</h3>
+    <h3>Passed</h3>
+    </body>
+    
+    </html>

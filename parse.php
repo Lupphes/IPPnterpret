@@ -51,7 +51,8 @@ function headerValidation($line, $header)
 
 function generateFile($xml)
 {
-    file_put_contents('result.xml', $xml->outputMemory());
+    echo $xml->outputMemory();
+    $xml->flush();
 }
 
 function atSlitter($xml, $split)
