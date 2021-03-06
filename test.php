@@ -35,7 +35,6 @@ function argumentsValidation($argv)
         switch ($value) {
             case "--help":
                 if (count($parsedArguments) != 2) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -44,7 +43,6 @@ function argumentsValidation($argv)
                 }
             case "--directory":
                 if ($isDirectorySet || !($key + 1 < count($parsedArguments) && !preg_match("/^--.*/i", $parsedArguments[$key + 1]))) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -54,7 +52,6 @@ function argumentsValidation($argv)
                 break;
             case "--recursive":
                 if ($isRecursiveSet) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -63,7 +60,6 @@ function argumentsValidation($argv)
                 break;
             case "--parse-script":
                 if ($isParseScriptSet || !($key + 1 < count($parsedArguments) && !preg_match("/^--.*/i", $parsedArguments[$key + 1]))) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -73,7 +69,6 @@ function argumentsValidation($argv)
                 break;
             case "--int-script":
                 if ($isIntScriptSet || !($key + 1 < count($parsedArguments) && !preg_match("/^--.*/i", $parsedArguments[$key + 1]))) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -83,7 +78,6 @@ function argumentsValidation($argv)
                 break;
             case "--parse-only":
                 if ($isParseOnlySet) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -92,7 +86,6 @@ function argumentsValidation($argv)
                 break;
             case "--int-only":
                 if ($isIntOnlySet) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -101,7 +94,6 @@ function argumentsValidation($argv)
                 break;
             case "--jexamxml":
                 if ($isJexamxmlOnlySet || !($key + 1 < count($parsedArguments) && !preg_match("/^--.*/i", $parsedArguments[$key + 1]))) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -111,7 +103,6 @@ function argumentsValidation($argv)
                 break;
             case "--jexamcfg":
                 if ($isJexamcfgOnlySet || !($key + 1 < count($parsedArguments) && !preg_match("/^--.*/i", $parsedArguments[$key + 1]))) {
-                    echo "10"; // ignore this thats debug
                     exit(10);
                 }
                 else {
@@ -120,13 +111,11 @@ function argumentsValidation($argv)
                 }
                 break;
             default:
-                echo "10"; // ignore this thats debug
                 exit(10);
         }
     }
 
     if ((($isIntOnlySet || $isIntScriptSet) && $isParseOnlySet) || (($isParseOnlySet || $isParseScriptSet) && $isIntOnlySet)) {
-        echo "10"; // ignore this thats debug
         exit(10);
     }
 
@@ -147,7 +136,6 @@ function argumentsValidation($argv)
     }
 
     if (!(file_exists($isParseScriptSet) || file_exists($isIntScriptSet) || file_exists($isJexamxmlOnlySet) || file_exists($isJexamcfgOnlySet))) {
-        echo "41"; // ignore this thats debug
         exit(41);
     }
 
@@ -183,6 +171,9 @@ function generateStringExplain($value)
 {
     $response = "";
     switch ($value) {
+        case -1:
+            $response = "No data";
+            break;
         case 0:
             $response = "Two files are identical";
             break;
@@ -204,7 +195,6 @@ function generateTable($array, $name)
     if (empty($array)) {
         return "";
     }
-
     $table = "
     <h3>$name</h3>
     <table>
@@ -219,9 +209,9 @@ function generateTable($array, $name)
     foreach ($array as $value) {
         $table .=
             "<tr>
-            <td class='passed'>$value[0]</td>
-            <td class='center'>$value[1]/$value[2]</td>
-            <td class='center'>" . generateStringExplain($value[3]) . "</td>
+            <td class='passed'>" . $value["filePath"] . "</td>
+            <td class='center'>" . $value["returnedValue"] . "/" . $value["expectedReturn"] . "</td>
+            <td class='center'>" . generateStringExplain($value["XMLreturn"]) . "</td>
         </tr>";
     }
 
@@ -268,8 +258,8 @@ function generateWeb($tests)
     <h3 class='$correctClass'>Passed: " . count($tests["parse"]["passed"]) . "</h3>
     <h3 class='$failedClass'>Failed: " . count($tests["parse"]["failed"]) . "</h3>
     <h2>Parse.php</h2>
-    " . generateTable($tests["parse"]["passed"], "Failed") . "
-    " . generateTable($tests["parse"]["failed"], "Passed") . "
+    " . generateTable($tests["parse"]["passed"], "Passed") . "
+    " . generateTable($tests["parse"]["failed"], "Failed") . "
     <h2>Interpret.py</h2>
     <h3>Failed</h3>
     <h3>Passed</h3>
@@ -302,6 +292,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
+            echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
@@ -316,23 +307,39 @@ function main($argv)
 
             $testedReturnValue = readTestFile("$filePath.rc");
 
-            $tempOutput = tmpfile();
-            $pathOutput = stream_get_meta_data($tempOutput)['uri'];
+            $outputFile = tmpfile();
+            $pathOutput = stream_get_meta_data($outputFile)['uri'];
             exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
 
+            $value = [
+                "filePath" => null,
+                "returnedValue" => null,
+                "expectedReturn" => null,
+                "XMLreturn" => null,
+            ];
 
+            $value["filePath"] = $filePath;
+            $value["returnedValue"] = $returnedValue;
+            $value["expectedReturn"] = $testedReturnValue;
             if ($arguments["isParseOnly"]) {
-                if ($returnedValue == $testedReturnValue) {
-                    exec("java -jar " . $arguments["jexamxmlPath"] . " $pathOutput $filePath.out " . $arguments["jexamcfgPath"], $output, $resultXML);
+                if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
+                    exec("java -jar " . $arguments["jexamxmlPath"] . " $pathOutput $filePath.out " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
+                    $value["XMLreturn"] = $resultXML;
                     if ($resultXML == 0) {
-                        array_push($tests["parse"]["passed"], array($filePath, $returnedValue, $testedReturnValue, $resultXML));
+                        array_push($tests["parse"]["passed"], $value);
                     }
                     else {
-                        array_push($tests["parse"]["failed"], array($filePath, $returnedValue, $testedReturnValue, $resultXML));
+                        array_push($tests["parse"]["failed"], $value);
                     }
                 }
+                else if ($returnedValue == $testedReturnValue) {
+                    $value["XMLreturn"] = -1;
+                    array_push($tests["parse"]["passed"], $value);
+
+                }
                 else {
-                    array_push($tests["parse"]["failed"], array($filePath, $returnedValue, $testedReturnValue, "–"));
+                    $value["XMLreturn"] = -1;
+                    array_push($tests["parse"]["failed"], $value);
                 }
             }
             else if ($arguments["isInterpretOnly"]) {
@@ -343,18 +350,17 @@ function main($argv)
                     echo "Interpret with parse";
                 }
                 else {
-                    array_push($tests["interpret"]["failed"], array($filePath, $returnedValue, $testedReturnValue, "–"));
+                    array_push($tests["interpret"]["failed"], array($filePath, $returnedValue, $testedReturnValue, -1));
                 }
             }
-            fclose($tempOutput);
+            fclose($outputFile);
         }
     }
     generateWeb($tests);
 
 }
 
-
-
+ini_set("display_errors", "stderr");
 main($argv);
 
 ?>

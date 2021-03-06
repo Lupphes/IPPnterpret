@@ -1,29 +1,20 @@
 #!/usr/bin/env php
 <?php
-function argumentsValidation()
+function argumentsValidation($argv)
 {
-    $shortopts = "h";
-    $longopts = ["help"];
-
-    $options = getopt($shortopts, $longopts, $restindex);
-    $keys = array_keys($options);
-
-    if ($restindex <= 2) {
-        foreach ($keys as $key) {
-            switch ($key) {
-                case "h":
-                case "help":
-                    echo "Help msg\n";
-                    exit(0);
-                default:
-                    echo "10"; // ignore this thats debug
-                    exit(10);
+    switch (count($argv)) {
+        case 1:
+            break;
+        case 2:
+            if ($argv[1] == "--help") {
+                echo "Help msg\n";
+                exit(0);
             }
-        }
-    }
-    else {
-        echo "10"; // ignore this thats debug
-        exit(10);
+            else {
+                exit(10);
+            }
+        default:
+            exit(10);
     }
 }
 
@@ -39,11 +30,10 @@ function commentsTrim($line)
 function headerValidation($line, $header)
 {
     // $headerPattern = ".IPPcode21";
-    if (preg_match("/^.ippcode21$/i", $line)) {
+    if (preg_match("/^.ippcode20$/i", $line)) {
         $header = true;
     }
     else {
-        echo "\n21"; // ignore this thats debug
         exit(21);
     }
     return $header;
@@ -55,8 +45,50 @@ function generateFile($xml)
     $xml->flush();
 }
 
-function atSlitter($xml, $split)
+function checkTypes($argumets)
 {
+    // var_dump($argumets);
+    switch ($argumets[0]) {
+        case "int":
+            break;
+        case "bool":
+            switch ($argumets[1]) {
+                case "true":
+                case "false":
+    
+                    break;
+                default:
+                echo "457615";
+                    exit(23);
+            }
+            break;
+        case "string":
+            break;
+        case "nil":
+            break;
+        case "label":
+            break;
+        case "type":
+            break;
+        case "var":
+            break;
+        case "GF":
+        case "LF":
+        case "TF":
+            // $xml->writeAttribute("type", "var");
+            // $xml->text("$argumets[0]@$argumets[1]");
+            break;
+        default:
+            echo "here14523";
+            exit(23);
+    }
+    
+
+    return;
+}
+
+
+function exploder($split) {
     $argumets = explode('@', $split, 2);
     switch (count($argumets)) {
         case 1:
@@ -64,35 +96,50 @@ function atSlitter($xml, $split)
                 $argumets[2] = "";
             }
             else {
-                var_dump($argumets);
-                echo "\n23"; // ignore this thats debug
+                echo "854";
                 exit(23);
             }
             break;
         case 2:
             break;
         default:
-            echo "\n23"; // ignore this thats debug
+        echo "here123";
             exit(23);
     }
-    if ($argumets[0] == "GF" || $argumets[0] == "LF" || $argumets[0] == "TF") {
-        $xml->writeAttribute("type", "var");
-        $xml->text("$argumets[0]@$argumets[1]");
-    }
-    else {
-        $xml->writeAttribute("type", $argumets[0]);
-        $xml->text($argumets[1]);
-    }
-    return;
+    return $argumets;
 }
 
-function main()
+
+function varValidator($xml, $split)
 {
+    $argumets = exploder($split);
+
+
+
+}
+
+function symbValidator($xml, $split)
+{
+    $argumets = null;
+    if (strpos($split, "@") !== false) {
+        $argumets = exploder($split);
+        checkTypes($argumets);
+        $xml->writeAttribute("type", $argumets[0]);
+        $xml->text($argumets[1]);
+    } else {
+        checkTypes($split);
+        $xml->writeAttribute("type", $split);
+        $xml->text($split);
+    }
+}
+
+function main($argv)
+{
+    argumentsValidation($argv);
+
     $i = 0;
     $header = false;
-    $types = array("int", "bool", "string", "nil", "label", "type", "var");
-    $usedLabels = array();
-    argumentsValidation();
+
     $xml = new XMLWriter();
     $xml->openMemory();
     $xml->startDocument("1.0", "UTF-8");
@@ -106,13 +153,14 @@ function main()
         if (!$header) {
             $header = headerValidation($line, $header);
             $xml->startElement("program");
-            $xml->writeAttribute("language", "IPPcode21");
+            $xml->writeAttribute("language", "IPPcode20");
             continue;
         }
         $split = preg_split("/[\s]+/", $line);
         $numberOfArguments = count($split);
 
         foreach ($split as $index => $argument) {
+            // echo $argument . "\n";
             if ($index == 0) {
                 $xml->startElement("instruction");
                 $xml->writeAttribute("order", ++$i);
@@ -127,12 +175,21 @@ function main()
                     case "MOVE":
                     case "INT2CHAR":
                     case "STRLEN":
-                    case "TYPE": // ⟨var⟩ ⟨symb⟩ 3
+                    case "TYPE": // ⟨var⟩ ⟨symb⟩
                         if (!($numberOfArguments == 3)) {
-                            echo "\n23"; // ignore this thats debug
                             exit(23);
                         }
-                        atSlitter($xml, $split[$index]);
+                        switch ($index) {
+                            case 1:
+                                
+                                varValidator($xml, $split[$index]);
+                                break;
+                            case 2:
+                                
+                                symbValidator($xml, $split[$index]);
+                                
+                                break;
+                        }
                         break;
                     case "RETURN":
                     case "CREATEFRAME":
@@ -140,38 +197,32 @@ function main()
                     case "POPFRAME":
                     case "BREAK": // No arguments
                         if (!($numberOfArguments == 1)) {
-                            echo "\n23"; // ignore this thats debug
                             exit(23);
                         }
                         break;
                     case "POPS":
                     case "DEFVAR": // ⟨var⟩
-                    // --------------------------
+                        if (!($numberOfArguments == 2)) {
+                            exit(23);
+                        }
+                        varValidator($xml, $split[$index]);
+                        break;
                     case "WRITE":
                     case "PUSHS":
                     case "EXIT":
                     case "DPRINT": // ⟨symb⟩
                         if (!($numberOfArguments == 2)) {
-                            echo "\n23"; // ignore this thats debug
                             exit(23);
                         }
-                        atSlitter($xml, $split[$index]);
+                        symbValidator($xml, $split[$index]);
                         break;
                     case "JUMP":
                     case "CALL":
                     case "LABEL": // ⟨label⟩
                         if (!($numberOfArguments == 2)) {
-                            echo "\n23"; // ignore this thats debug
                             exit(23);
                         }
-                        $xml->writeAttribute("type", $types[4]);
-                        // if (in_array($split[1], $usedLabels)) {
-                        //     echo "\n52"; // ignore this thats debug
-                        //     exit(52);
-                        // }
-                        // else {
-                        //     array_push($usedLabels, $split[1]);
-                        // }
+                        $xml->writeAttribute("type", "label");
                         $xml->text($split[1]);
                         break;
                     case "ADD":
@@ -189,19 +240,27 @@ function main()
                     case "SETCHAR":
                         // ⟨var⟩ ⟨symb1⟩ ⟨symb2⟩
                         if (!($numberOfArguments == 4)) {
-                            echo "\n23"; // ignore this thats debug
-                            exit(23);
-                        }
-                        atSlitter($xml, $split[$index]);
-                        break;
-                    case "READ": // ⟨var⟩ ⟨type⟩
-                        if (!($numberOfArguments == 3)) {
-                            echo "\n23"; // ignore this thats debug
                             exit(23);
                         }
                         switch ($index) {
                             case 1:
-                                atSlitter($xml, $argument);
+                                varValidator($xml, $split[$index]);
+                                break;
+                            case 2:
+                                symbValidator($xml, $split[$index]);
+                                break;
+                            case 3:
+                                symbValidator($xml, $split[$index]);
+                                break;
+                        }
+                        break;
+                    case "READ": // ⟨var⟩ ⟨type⟩
+                        if (!($numberOfArguments == 3)) {
+                            exit(23);
+                        }
+                        switch ($index) {
+                            case 1:
+                                varValidator($xml, $split[$index]);
                                 break;
                             case 2:
                                 $xml->writeAttribute("type", "type");
@@ -212,7 +271,6 @@ function main()
                     case "JUMPIFEQ":
                     case "JUMPIFNEQ":
                         if (!($numberOfArguments == 4)) {
-                            echo "\n23"; // ignore this thats debug
                             exit(23);
                         }
                         switch ($index) {
@@ -222,13 +280,11 @@ function main()
                                 break;
                             case 2:
                             case 3:
-                                atSlitter($xml, $argument);
+                                symbValidator($xml, $split[$index]);
                                 break;
                         }
                         break;
                     default:
-                        echo $split[0] . "\n";
-                        echo "\n22"; // ignore this thats debug
                         exit(22);
                 }
             }
@@ -244,5 +300,6 @@ function main()
 }
 
 ini_set("display_errors", "stderr");
-main();
+main($argv);
+
 ?>

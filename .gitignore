@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 
 result.xml
+index.html
+notes.txt
+tests/
