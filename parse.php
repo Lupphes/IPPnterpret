@@ -6,8 +6,15 @@ function argumentsValidation($argv)
         case 1:
             break;
         case 2:
-            if ($argv[1] == "--help") {
-                echo "Help msg\n";
+            if ($argv[1] == "--help") {                echo "IPPCode21 – parse.php
+Author: Ondřej Sloup (xsloup02)
+
+Usage:  parse.php <STDIN>
+    parse.php --help
+
+--help  This help
+<STDIN> Source file of IPPCode21. It is recomended to use `< <file>`
+";
                 exit(0);
             }
             else {

@@ -38,7 +38,22 @@ function argumentsValidation($argv)
                     exit(10);
                 }
                 else {
-                    echo "Help msg\n";
+                    echo "IPPCode21 – test.php
+Author: Ondřej Sloup (xsloup02)
+
+Usage:  test.php [args...]
+    test.php --help
+
+--help                  This help
+--directory=path        The folder where are the test files located. (*.src, *.out, *.in, *.rc)
+--recursive             This flag will allow the script to look recursively into folders.
+--parse-script <file>   Specification of the location of `parse.php` file. If not given, default `parse.php` is used.
+--int-script <file>     Specification of the location of `interpret.py` file. If not given, default `interpret.py` is used.
+--parse-only            This flag will specify that only the parse script is tested. Can't be combined with --int-only or --int-script.
+--int-only              This flag will specify that only the interpret script is tested. Can't be combined with --parse-only or --parse-script.
+--jexamxml <file>       Specification of the location of JAR file for A7Soft JExamXML tool. If not given, default `/pub/courses/ipp/jexamxml/jexamxml.jar` is used.
+--jexamcfg <file>       Specification of the location of configuration file for A7Soft JExamXML tool. If not given, default `/pub/courses/ipp/jexamxml/jexamxml.jar` is used.
+";
                     exit(0);
                 }
             case "--directory":
@@ -209,7 +224,7 @@ function generateTable($array, $name)
     foreach ($array as $value) {
         $table .=
             "<tr>
-            <td class='".$name."'>" . $value["filePath"] . "</td>
+            <td class='" . $name . "'>" . $value["filePath"] . "</td>
             <td class='center'>" . $value["returnedValue"] . " / " . $value["expectedReturn"] . "</td>
             <td class='center'>" . generateStringExplain($value["XMLreturn"]) . "</td>
         </tr>";
