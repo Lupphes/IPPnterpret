@@ -88,13 +88,11 @@ function checkTypes($argumets)
     return;
 }
 
-
 function exploder($split)
 {
     $argumets = explode('@', $split, 2);
     return $argumets;
 }
-
 
 function varValidator($xml, $split)
 {
@@ -318,13 +316,19 @@ function main($argv)
                             varValidator($xml, $split[$index]);
                             break;
                         case 2:
-                            $xml->writeAttribute("type", "type");
-                            $xml->text($argument);
+                            if ($argument == "string" || $argument == "int" || $argument == "bool") {
+                                $xml->writeAttribute("type", "type");
+                                $xml->text($argument);
+                            }
+                            else {
+                                exit(23);
+                            }
                             break;
                     }
                     break;
                 case "JUMPIFEQ":
                 case "JUMPIFNEQ":
+                    // ⟨label⟩ ⟨symb1⟩ ⟨symb2⟩
                     if (!($numberOfArguments == 4)) {
                         exit(23);
                     }
@@ -337,8 +341,7 @@ function main($argv)
                     $xml->startElement("arg" . ($index));
                     switch ($index) {
                         case 1:
-                            $xml->writeAttribute("type", "label");
-                            $xml->text($argument);
+                            labelVerify($xml, $split[$index]);
                             break;
                         case 2:
                         case 3:
