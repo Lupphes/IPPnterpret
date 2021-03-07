@@ -15,10 +15,10 @@
             .center {
                 text-align: center;
             }
-            .passed {
+            .Passed {
                 color: green;
             }
-            .failed {
+            .Failed {
                 color: red;
             }
         </style>
@@ -26,9 +26,9 @@
     
     <body>
     <h1>Test summary</h1>
-    <h3>Number of tests: 3 </h3>
-    <h3 class='passed'>Passed: 1</h3>
-    <h3 class='failed'>Failed: 2</h3>
+    <h3>Number of tests: 136 </h3>
+    <h3 class='Passed'>Passed: 136</h3>
+    <h3 class=''>Failed: 0</h3>
     <h2>Parse.php</h2>
     
     <h3>Passed</h3>
@@ -36,36 +36,557 @@
         <thead>
         <tr>
             <th>Name</th>
-            <th>Return code</th>
+            <th>Return code (actual / expected)</th>
             <th>Compare</th>
         </tr>
         </thead>
         <tbody><tr>
-            <td class='passed'>./tests/parse-only/git/basic/write_test</td>
-            <td class='center'>0/0</td>
+            <td class='Passed'>./tests/parse-only/git/basic/read_test</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/basic/simple_tag</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/basic/write_test</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/bool/0</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/bool/cases</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/bool/false</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/bool/no@</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/bool/true</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/call/bool</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/call/int</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/call/nil</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/call/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/call/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/call/string</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/createFrame/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/createFrame/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/double@</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/GF</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/label</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/LF</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/moreSpaces</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/number</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/number2</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/number3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialChars</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialChars2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialChars3</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialChars4</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk1</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk4</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk5</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk6</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk7</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/specialCharsOk8</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/TF</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/defvar/upper</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/blankLine</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/cases</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/cases2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/code200</td>
+            <td class='center'>21 / 21</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/comment1</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/comment2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/comment3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/comment4</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/defVarHeader</td>
+            <td class='center'>21 / 21</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/doubleHeader</td>
+            <td class='center'>22 / 22</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/headerNotFirst</td>
+            <td class='center'>21 / 21</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/noDott</td>
+            <td class='center'>21 / 21</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/noHeader</td>
+            <td class='center'>21 / 21</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/spaces</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/spaces2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/header/upperCase</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/cases</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/empty</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/longInt</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/no@</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/ok1</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/ok2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/int/ok3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/@</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/LF@</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple00</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple10</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple11</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple12</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple13</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple14</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/simple15</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar1</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar4</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar5</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar6</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar7</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar8</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialChar9</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/specialCharDouble</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/label/upper</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/move/1operand</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/move/1param</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/move/3operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/move/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/move/symbSymb</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/move/varVar</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/nil/bad1</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/nil/nill</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/nil/no@</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/nil/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/nil/upper</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/2inst1line</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/cases</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/comment</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/comment2</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/comment3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/nospace</td>
+            <td class='center'>22 / 22</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/opcode/smallcase</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/popFrame/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/popFrame/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/bool</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/int</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/label</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/nil</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/string</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pops/var</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushFrame/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushFrame/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/bool</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/int</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/label</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/nil</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/string</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/pushs/var</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/return/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/return/operands</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/comment</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/empty</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/escape</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/escape1</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/escape2</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/escape3</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/escape4</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/long</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/numbers</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/ok</td>
+            <td class='center'>0 / 0</td>
+            <td class='center'>Two files are identical</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/slash</td>
+            <td class='center'>23 / 23</td>
+            <td class='center'>No data</td>
+        </tr><tr>
+            <td class='Passed'>./tests/parse-only/git/string/utf</td>
+            <td class='center'>0 / 0</td>
             <td class='center'>Two files are identical</td>
         </tr></tbody>
     </table>
     
-    <h3>Failed</h3>
-    <table>
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Return code</th>
-            <th>Compare</th>
-        </tr>
-        </thead>
-        <tbody><tr>
-            <td class='passed'>./tests/parse-only/git/basic/read_test</td>
-            <td class='center'>0/0</td>
-            <td class='center'>There are some different elements</td>
-        </tr><tr>
-            <td class='passed'>./tests/parse-only/git/basic/simple_tag</td>
-            <td class='center'>0/0</td>
-            <td class='center'>There are some different elements</td>
-        </tr></tbody>
-    </table>
     <h2>Interpret.py</h2>
     <h3>Failed</h3>
     <h3>Passed</h3>

@@ -201,7 +201,7 @@ function generateTable($array, $name)
         <thead>
         <tr>
             <th>Name</th>
-            <th>Return code</th>
+            <th>Return code (actual / expected)</th>
             <th>Compare</th>
         </tr>
         </thead>
@@ -209,8 +209,8 @@ function generateTable($array, $name)
     foreach ($array as $value) {
         $table .=
             "<tr>
-            <td class='passed'>" . $value["filePath"] . "</td>
-            <td class='center'>" . $value["returnedValue"] . "/" . $value["expectedReturn"] . "</td>
+            <td class='".$name."'>" . $value["filePath"] . "</td>
+            <td class='center'>" . $value["returnedValue"] . " / " . $value["expectedReturn"] . "</td>
             <td class='center'>" . generateStringExplain($value["XMLreturn"]) . "</td>
         </tr>";
     }
@@ -224,8 +224,8 @@ function generateTable($array, $name)
 function generateWeb($tests)
 {
 
-    $correctClass = (count($tests["parse"]["passed"]) == 0) ? "" : "passed";
-    $failedClass = (count($tests["parse"]["failed"]) == 0) ? "" : "failed";
+    $correctClass = (count($tests["parse"]["passed"]) == 0) ? "" : "Passed";
+    $failedClass = (count($tests["parse"]["failed"]) == 0) ? "" : "Failed";
     $defaultHTML = "
     <!doctype html>
     <html lang='en'>
@@ -243,10 +243,10 @@ function generateWeb($tests)
             .center {
                 text-align: center;
             }
-            .passed {
+            .Passed {
                 color: green;
             }
-            .failed {
+            .Failed {
                 color: red;
             }
         </style>

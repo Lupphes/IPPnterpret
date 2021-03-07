@@ -1,4 +1,4 @@
-.IPPcode21
+.IPPcode20
 MOVE GF@counter string@ #Inicializace proměnné na prázdný řetězec
 CREATEFRAME
 PUSHFRAME
