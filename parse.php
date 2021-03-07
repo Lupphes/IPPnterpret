@@ -1,12 +1,22 @@
 #!/usr/bin/env php
 <?php
+/**
+ * Parses the arguments from the terminal.
+ *
+ * @param array $argv Arguments passed via command line
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function argumentsValidation($argv)
 {
     switch (count($argv)) {
         case 1:
             break;
         case 2:
-            if ($argv[1] == "--help") {                echo "IPPCode21 – parse.php
+            if ($argv[1] == "--help") {
+                echo "IPPCode21 – parse.php
 Author: Ondřej Sloup (xsloup02)
 
 Usage:  parse.php <STDIN>
@@ -25,6 +35,15 @@ Usage:  parse.php <STDIN>
     }
 }
 
+/**
+ * Trims the comments on the given line.
+ *
+ * @param string $line String line which needs to be trimmed
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function commentsTrim($line)
 {
     if (($commentTrim = strpos($line, "#")) !== false) {
@@ -34,9 +53,19 @@ function commentsTrim($line)
 
 }
 
+/**
+ * Checks If the header is specified.
+ *
+ * @param string $line String line where the header supposed to be
+ * @param bool $header The flag which detects If the header was set up yet
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function headerValidation($line, $header)
 {
-    // $headerPattern = ".IPPcode21";
+    // If you want to use automatic tests, change the header
     if (preg_match("/^.ippcode20$/i", trim(strtolower($line)))) {
         $header = true;
     }
@@ -46,12 +75,30 @@ function headerValidation($line, $header)
     return $header;
 }
 
+/**
+ * Generate STDOUT output
+ *
+ * @param XMLWriter $xml XML initialized class with xml info
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function generateFile($xml)
 {
     printf("%s", $xml->outputMemory());
     $xml->flush();
 }
 
+/**
+ * Check the given arguments
+ *
+ * @param array $argumets Parsed arguments
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function checkTypes($argumets)
 {
     switch ($argumets[0]) {
@@ -95,12 +142,31 @@ function checkTypes($argumets)
     return;
 }
 
+/**
+ * Splits line by '@'
+ *
+ * @param string $split String line which will be splitted
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function exploder($split)
 {
     $argumets = explode('@', $split, 2);
     return $argumets;
 }
 
+/**
+ * Variable argument validation
+ *
+ * @param XMLWriter $xml XML initialized class with xml info
+ * @param string $split String line which is processed
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function varValidator($xml, $split)
 {
     if (strpos($split, "@") !== true) {
@@ -123,6 +189,16 @@ function varValidator($xml, $split)
     }
 }
 
+/**
+ * Symbol argument validation
+ *
+ * @param XMLWriter $xml XML initialized class with xml info
+ * @param array $split String line which is processed
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function symbValidator($xml, $split)
 {
     $argumets = null;
@@ -147,6 +223,17 @@ function symbValidator($xml, $split)
     }
 }
 
+
+/**
+ * Label argument validation
+ *
+ * @param XMLWriter $xml XML initialized class with xml info
+ * @param string $split String line which is processed
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function labelVerify($xml, $split)
 {
 
@@ -157,6 +244,15 @@ function labelVerify($xml, $split)
     $xml->text($split);
 }
 
+/**
+ * Main function of the parser.php
+ *
+ * @param array $argv Arguments passed via command line
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function main($argv)
 {
     argumentsValidation($argv);

@@ -1,6 +1,15 @@
 #!/usr/bin/env php
 <?php
 
+/**
+ * Parses the arguments from the terminal.
+ *
+ * @param array $argv Arguments passed via command line
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function argumentsValidation($argv)
 {
     $arguments = $argv;
@@ -138,10 +147,10 @@ Usage:  test.php [args...]
         $isDirectorySet = ".";
     }
     if (!$isParseScriptSet) {
-        $isParseScriptSet = "./parse.php";
+        $isParseScriptSet = "parse.php";
     }
     if (!$isIntScriptSet) {
-        $isIntScriptSet = "./interpret.py";
+        $isIntScriptSet = "interpret.py";
     }
     if (!$isJexamxmlOnlySet) {
         $isJexamxmlOnlySet = "/pub/courses/ipp/jexamxml/jexamxml.jar";
@@ -150,9 +159,20 @@ Usage:  test.php [args...]
         $isJexamcfgOnlySet = "/pub/courses/ipp/jexamxml/options";
     }
 
-    if (!(file_exists($isParseScriptSet) || file_exists($isIntScriptSet) || file_exists($isJexamxmlOnlySet) || file_exists($isJexamcfgOnlySet))) {
+    // I'm sorry to whoever is reading this
+    if (!file_exists($isJexamxmlOnlySet) || !file_exists($isJexamcfgOnlySet) || !file_exists($isDirectorySet)) {
         exit(41);
     }
+    if ($isIntOnlySet && !file_exists($isIntScriptSet)) {
+        exit(41);
+    }
+    if ($isParseOnlySet && !file_exists($isParseScriptSet)) {
+        exit(41);
+    }
+    if ((!$isParseOnlySet && !$isIntOnlySet) && (!file_exists($isParseScriptSet) || !file_exists($isIntScriptSet))) {
+        exit(41);
+    }
+    ///////
 
     return array(
         "directoryPath" => $isDirectorySet,
@@ -166,6 +186,16 @@ Usage:  test.php [args...]
     );
 }
 
+/**
+ * Create a file with specified name and test
+ *
+ * @param string $name Name of the file
+ * @param string $txt Text which will be written to that file
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function createFile($name, $txt)
 {
     $file = fopen($name, "w") or die("Unable to create a file!");
@@ -174,6 +204,15 @@ function createFile($name, $txt)
     return;
 }
 
+/**
+ * Read the contents of a specified file
+ *
+ * @param string $path File path 
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function readTestFile($path)
 {
     $retrunFile = fopen($path, "r") or die("Unable to return code file!");
@@ -182,6 +221,15 @@ function readTestFile($path)
     return $readValue;
 }
 
+/**
+ * Translate the result code into the text
+ *
+ * @param string $value Return code of the XML
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function generateStringExplain($value)
 {
     $response = "";
@@ -205,10 +253,20 @@ function generateStringExplain($value)
     return $response;
 }
 
+/**
+ * Generate row of the table
+ *
+ * @param array $array Test and information about it
+ * @param string $name Type of the test
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function generateTable($array, $name)
 {
     if (empty($array)) {
-        return "";
+        return "<h3>$name</h3><p>Nothing $name</p>";
     }
     $table = "
     <h3>$name</h3>
@@ -236,6 +294,15 @@ function generateTable($array, $name)
     return $table;
 }
 
+/**
+ * Generate a HTML page
+ *
+ * @param array $tests Tests and information about it
+ *
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function generateWeb($tests)
 {
 
@@ -273,8 +340,8 @@ function generateWeb($tests)
     <h3 class='$correctClass'>Passed: " . count($tests["parse"]["passed"]) . "</h3>
     <h3 class='$failedClass'>Failed: " . count($tests["parse"]["failed"]) . "</h3>
     <h2>Parse.php</h2>
-    " . generateTable($tests["parse"]["passed"], "Passed") . "
     " . generateTable($tests["parse"]["failed"], "Failed") . "
+    " . generateTable($tests["parse"]["passed"], "Passed") . "
     <h2>Interpret.py</h2>
     <h3>Failed</h3>
     <h3>Passed</h3>
@@ -288,6 +355,15 @@ function generateWeb($tests)
     return;
 }
 
+/**
+ * Main function of the parser.php
+ *
+ * @param array $argv Arguments passed via command line
+ * 
+ * @since 07.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
 function main($argv)
 {
     $arguments = argumentsValidation($argv);
@@ -358,11 +434,11 @@ function main($argv)
                 }
             }
             else if ($arguments["isInterpretOnly"]) {
-                echo "Interpret";
+                echo "Interpret\n";
             }
             else {
                 if ($returnedValue == $testedReturnValue) {
-                    echo "Interpret with parse";
+                    echo "Interpret with parse\n";
                 }
                 else {
                     array_push($tests["interpret"]["failed"], array($filePath, $returnedValue, $testedReturnValue, -1));
