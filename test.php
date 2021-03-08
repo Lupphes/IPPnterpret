@@ -349,8 +349,8 @@ function generateWeb($tests)
     
     </html>";
 
-    // echo $defaultHTML;
-    createFile("index.html", $defaultHTML);
+    echo $defaultHTML;
+    // createFile("index.html", $defaultHTML);
 
     return;
 }
