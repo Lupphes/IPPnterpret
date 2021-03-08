@@ -383,7 +383,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            echo "$fileName" . "\n";
+            // echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
@@ -414,7 +414,7 @@ function main($argv)
             $value["expectedReturn"] = $testedReturnValue;
             if ($arguments["isParseOnly"]) {
                 if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
-                    exec("java -jar " . $arguments["jexamxmlPath"] . " $pathOutput $filePath.out " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
+                    exec("java -jar " . $arguments["jexamxmlPath"] . " $filePath.out $pathOutput /dev/null " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
                     $value["XMLreturn"] = $resultXML;
                     if ($resultXML == 0) {
                         array_push($tests["parse"]["passed"], $value);
@@ -434,11 +434,11 @@ function main($argv)
                 }
             }
             else if ($arguments["isInterpretOnly"]) {
-                echo "Interpret\n";
+                echo "Interpret (Not implemented yet)\n";
             }
             else {
                 if ($returnedValue == $testedReturnValue) {
-                    echo "Interpret with parse\n";
+                    echo "Interpret with parse (Not implemented yet)\n";
                 }
                 else {
                     array_push($tests["interpret"]["failed"], array($filePath, $returnedValue, $testedReturnValue, -1));
