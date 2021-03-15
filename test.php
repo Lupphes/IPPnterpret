@@ -450,7 +450,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            echo "$fileName" . "\n";
+            // echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
