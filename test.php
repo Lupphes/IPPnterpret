@@ -226,11 +226,11 @@ function readTestFile($path)
  *
  * @param string $value Return code of the XML
  *
- * @since 07.03.2021
+ * @since 15.03.2021
  * @author Ondřej Sloup <xsloup02>
  *
  */
-function generateStringExplain($value)
+function generateXMLStringExplain($value)
 {
     $response = "";
     switch ($value) {
@@ -254,16 +254,45 @@ function generateStringExplain($value)
 }
 
 /**
+ * Translate the result code into the text
+ *
+ * @param string $value Return code of the diff
+ *
+ * @since 15.03.2021
+ * @author Ondřej Sloup <xsloup02>
+ *
+ */
+function generateDiffStringExplain($value)
+{
+    $response = "";
+    switch ($value) {
+        case -1:
+            $response = "No data";
+            break;
+        case 0:
+            $response = "No differences were found";
+            break;
+        case 1:
+            $response = "Differences were found";
+            break;
+        default:
+            $response = "An error occurred in diff";
+            break;
+    }
+    return $response;
+}
+
+/**
  * Generate row of the table
  *
  * @param array $array Test and information about it
  * @param string $name Type of the test
  *
- * @since 07.03.2021
+ * @since 15.03.2021
  * @author Ondřej Sloup <xsloup02>
  *
  */
-function generateTable($array, $name)
+function generateTable($array, $name, $mode)
 {
     if (empty($array)) {
         return "<h3>$name</h3><p>Nothing $name</p>";
@@ -280,11 +309,12 @@ function generateTable($array, $name)
         </thead>
         <tbody>";
     foreach ($array as $value) {
+        $translatedValue = ($mode == "Parse only") ? (generateXMLStringExplain($value["outputCheck"])) : (generateDiffStringExplain($value["outputCheck"]));
         $table .=
             "<tr>
             <td class='" . $name . "'>" . $value["filePath"] . "</td>
             <td class='center'>" . $value["returnedValue"] . " / " . $value["expectedReturn"] . "</td>
-            <td class='center'>" . generateStringExplain($value["XMLreturn"]) . "</td>
+            <td class='center'>" . $translatedValue . "</td>
         </tr>";
     }
 
@@ -299,15 +329,17 @@ function generateTable($array, $name)
  *
  * @param array $tests Tests and information about it
  *
- * @since 07.03.2021
+ * @since 15.03.2021
  * @author Ondřej Sloup <xsloup02>
  *
  */
-function generateWeb($tests)
+function generateWeb($tests, $mode)
 {
 
-    $correctClass = (count($tests["parse"]["passed"]) == 0) ? "" : "Passed";
-    $failedClass = (count($tests["parse"]["failed"]) == 0) ? "" : "Failed";
+    $correctParseClass = (count($tests["parse"]["passed"]) == 0) ? "" : "Passed";
+    $failedParseClass = (count($tests["parse"]["failed"]) == 0) ? "" : "Failed";
+    $correctIntClass = (count($tests["interpret"]["passed"]) == 0) ? "" : "Passed";
+    $failedIntClass = (count($tests["interpret"]["failed"]) == 0) ? "" : "Failed";
     $defaultHTML = "
     <!doctype html>
     <html lang='en'>
@@ -317,6 +349,9 @@ function generateWeb($tests)
         <style>
             h3 {
                 margin: 0;
+            }
+            h2 {
+                margin: 5px 0;
             }
             table, th, td {
                 border: 1px solid black;
@@ -331,26 +366,47 @@ function generateWeb($tests)
             .Failed {
                 color: red;
             }
+            .border-element h3:last-of-type {
+                border-bottom: 1px solid black;
+                padding-bottom: 5px;
+            }
+            .border {
+                border-top: 1px solid black;
+                padding-top: 5px;
+            }
         </style>
     </head>
     
     <body>
     <h1>Test summary</h1>
-    <h3>Number of tests: " . $tests["testCount"] . " </h3>
-    <h3 class='$correctClass'>Passed: " . count($tests["parse"]["passed"]) . "</h3>
-    <h3 class='$failedClass'>Failed: " . count($tests["parse"]["failed"]) . "</h3>
+    <div>
+        <h2>Mode: $mode</h2>
+        <h3>Number of tests: " . $tests["testCount"] . " </h3>
+        <div class='border-element'>
+            <h2 class='border'>Parse</h2>
+            <h3 class='$correctParseClass'>Passed: " . count($tests["parse"]["passed"]) . "</h3>
+            <h3 class='$failedParseClass'>Failed: " . count($tests["parse"]["failed"]) . "</h3>
+        </div>
+        <div class='border-element'>
+            <h2>Interpret</h2>
+            <h3 class='$correctIntClass'>Passed: " . count($tests["interpret"]["passed"]) . "</h3>
+            <h3 class='$failedIntClass'>Failed: " . count($tests["interpret"]["failed"]) . "</h3>
+        </div>
+    </div>
+    <div>
     <h2>Parse.php</h2>
-    " . generateTable($tests["parse"]["failed"], "Failed") . "
-    " . generateTable($tests["parse"]["passed"], "Passed") . "
-    <h2>Interpret.py</h2>
-    <h3>Failed</h3>
-    <h3>Passed</h3>
+    " . generateTable($tests["parse"]["failed"], "Failed", $mode) . "
+    " . generateTable($tests["parse"]["passed"], "Passed", $mode) . "
+    <h2 class='border' id='#interpret'>Interpret.py</h2>
+    " . generateTable($tests["interpret"]["failed"], "Failed", $mode) . "
+    " . generateTable($tests["interpret"]["passed"], "Passed", $mode) . "
+    </div>
     </body>
     
     </html>";
 
-    echo $defaultHTML;
-    // createFile("index.html", $defaultHTML);
+    // echo $defaultHTML;
+    createFile("index.html", $defaultHTML);
 
     return;
 }
@@ -360,7 +416,7 @@ function generateWeb($tests)
  *
  * @param array $argv Arguments passed via command line
  * 
- * @since 07.03.2021
+ * @since 15.03.2021
  * @author Ondřej Sloup <xsloup02>
  *
  */
@@ -381,73 +437,143 @@ function main($argv)
         ]
     ];
 
+
+    if ($arguments["isInterpretOnly"]) {
+        $mode = "Interpret only";
+    }
+    else if ($arguments["isParseOnly"]) {
+        $mode = "Parse only";
+    }
+    else {
+        $mode = "Both";
+    }
+
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            // echo "$fileName" . "\n";
+            echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
             }
-            else if (!file_exists($filePath . ".rc")) {
+            if (!file_exists($filePath . ".rc")) {
                 createFile($filePath . ".rc", "0");
             }
-            else if (!file_exists($filePath . ".in")) {
+            if (!file_exists($filePath . ".in")) {
                 createFile($filePath . ".in", "");
             }
             $tests["testCount"]++;
 
             $testedReturnValue = readTestFile("$filePath.rc");
 
-            $outputFile = tmpfile();
-            $pathOutput = stream_get_meta_data($outputFile)['uri'];
-            exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
-
             $value = [
-                "filePath" => null,
+                "filePath" => $filePath,
                 "returnedValue" => null,
-                "expectedReturn" => null,
-                "XMLreturn" => null,
+                "expectedReturn" => $testedReturnValue,
+                "outputCheck" => null,
             ];
 
-            $value["filePath"] = $filePath;
-            $value["returnedValue"] = $returnedValue;
-            $value["expectedReturn"] = $testedReturnValue;
-            if ($arguments["isParseOnly"]) {
+
+
+
+            if ($arguments["isInterpretOnly"]) {
+                $outputPythonFile = tmpfile();
+                $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
+
+                exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $filePath.src --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
+
+                $value["returnedValue"] = $returnedValue;
+
                 if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
-                    exec("java -jar " . $arguments["jexamxmlPath"] . " $filePath.out $pathOutput /dev/null " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
-                    $value["XMLreturn"] = $resultXML;
-                    if ($resultXML == 0) {
-                        array_push($tests["parse"]["passed"], $value);
+                    exec("diff $pathPythonOutput $filePath.out", $output, $returnedDiff);
+
+                    $value["outputCheck"] = $returnedDiff;
+                    if ($returnedDiff == 0) {
+                        array_push($tests["interpret"]["passed"], $value);
                     }
                     else {
-                        array_push($tests["parse"]["failed"], $value);
+                        array_push($tests["interpret"]["failed"], $value);
                     }
                 }
                 else if ($returnedValue == $testedReturnValue) {
-                    $value["XMLreturn"] = -1;
-                    array_push($tests["parse"]["passed"], $value);
-
+                    $value["outputCheck"] = -1;
+                    array_push($tests["interpret"]["passed"], $value);
                 }
                 else {
-                    $value["XMLreturn"] = -1;
-                    array_push($tests["parse"]["failed"], $value);
+                    $value["outputCheck"] = -1;
+                    array_push($tests["interpret"]["failed"], $value);
                 }
-            }
-            else if ($arguments["isInterpretOnly"]) {
-                echo "Interpret (Not implemented yet)\n";
+                fclose($outputPythonFile);
             }
             else {
-                if ($returnedValue == $testedReturnValue) {
-                    echo "Interpret with parse (Not implemented yet)\n";
+                $outputFile = tmpfile();
+                $pathOutput = stream_get_meta_data($outputFile)['uri'];
+                exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
+
+                $value["returnedValue"] = $returnedValue;
+
+                if ($arguments["isParseOnly"]) {
+                    if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
+                        exec("java -jar " . $arguments["jexamxmlPath"] . " $filePath.out $pathOutput /dev/null " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
+                        $value["outputCheck"] = $resultXML;
+                        if ($resultXML == 0) {
+                            array_push($tests["parse"]["passed"], $value);
+                        }
+                        else {
+                            array_push($tests["parse"]["failed"], $value);
+                        }
+                    }
+                    else if ($returnedValue == $testedReturnValue) {
+                        $value["outputCheck"] = -1;
+                        array_push($tests["parse"]["passed"], $value);
+                    }
+                    else {
+                        $value["outputCheck"] = -1;
+                        array_push($tests["parse"]["failed"], $value);
+                    }
                 }
                 else {
-                    array_push($tests["interpret"]["failed"], array($filePath, $returnedValue, $testedReturnValue, -1));
+                    if ($returnedValue == 0) {
+                        $outputPythonFile = tmpfile();
+                        $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
+                        exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $filePath.src --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
+
+                        if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
+                            exec("diff $pathPythonOutput $filePath.out", $output, $returnedDiff);
+
+                            $value["outputCheck"] = $returnedDiff;
+                            if ($returnedDiff == 0) {
+                                array_push($tests["interpret"]["passed"], $value);
+                            }
+                            else {
+                                array_push($tests["interpret"]["failed"], $value);
+                            }
+                        }
+                        else if ($returnedValue == $testedReturnValue) {
+                            $value["outputCheck"] = -1;
+                            array_push($tests["interpret"]["passed"], $value);
+                        }
+                        else {
+                            $value["outputCheck"] = -1;
+                            array_push($tests["interpret"]["failed"], $value);
+                        }
+                        fclose($outputPythonFile);
+                    }
+                    else {
+                        if ($returnedValue == $testedReturnValue) {
+                            $value["outputCheck"] = -1;
+                            array_push($tests["parse"]["passed"], $value);
+                        }
+                        else {
+                            $value["outputCheck"] = -1;
+                            array_push($tests["parse"]["failed"], $value);
+                        }
+                    }
                 }
+                fclose($outputFile);
             }
-            fclose($outputFile);
         }
     }
-    generateWeb($tests);
+    generateWeb($tests, $mode);
 
 }
 

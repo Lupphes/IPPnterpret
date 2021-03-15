@@ -8,6 +8,9 @@
             h3 {
                 margin: 0;
             }
+            h2 {
+                margin: 5px 0;
+            }
             table, th, td {
                 border: 1px solid black;
                 padding: 5px;
@@ -21,14 +24,34 @@
             .Failed {
                 color: red;
             }
+            .border-element h3:last-of-type {
+                border-bottom: 1px solid black;
+                padding-bottom: 5px;
+            }
+            .border {
+                border-top: 1px solid black;
+                padding-top: 5px;
+            }
         </style>
     </head>
     
     <body>
     <h1>Test summary</h1>
-    <h3>Number of tests: 4325 </h3>
-    <h3 class='Passed'>Passed: 4325</h3>
-    <h3 class=''>Failed: 0</h3>
+    <div>
+        <h2>Mode: Parse only</h2>
+        <h3>Number of tests: 4325 </h3>
+        <div class='border-element'>
+            <h2 class='border'>Parse</h2>
+            <h3 class='Passed'>Passed: 4325</h3>
+            <h3 class=''>Failed: 0</h3>
+        </div>
+        <div class='border-element'>
+            <h2>Interpret</h2>
+            <h3 class=''>Passed: 0</h3>
+            <h3 class=''>Failed: 0</h3>
+        </div>
+    </div>
+    <div>
     <h2>Parse.php</h2>
     <h3>Failed</h3><p>Nothing Failed</p>
     
@@ -17343,9 +17366,10 @@
             <td class='center'>Two files are identical</td>
         </tr></tbody>
     </table>
-    <h2>Interpret.py</h2>
-    <h3>Failed</h3>
-    <h3>Passed</h3>
+    <h2 class='border'>Interpret.py</h2>
+    <h3>Failed</h3><p>Nothing Failed</p>
+    <h3>Passed</h3><p>Nothing Passed</p>
+    </div>
     </body>
     
     </html>
