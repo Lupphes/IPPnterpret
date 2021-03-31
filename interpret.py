@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import argparse
-from sys import exit as ex
+from sys import exit
 import pathlib
+import xml.etree.ElementTree as ET
 
+from classes import IPPCode20
 from errorCodes import ErrorCodes
 
 def argumentParse():
@@ -18,14 +19,14 @@ def argumentParse():
     try:
         args = parser.parse_args()
     except SystemExit:
-        ex(ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION.value)
+        exit(ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION.value)
 
     if (args.help and (args.input or args.source)):
         parser.error("You can't use help with any other arguments")
-        ex(ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION.value)
+        exit(ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION.value)
     elif not (args.input or args.source or args.help):
         parser.error('Please specify at least one argument')
-        ex(ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION.value)
+        exit(ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION.value)
     if args.help:
         print("""usage: interpret [-s SOURCE] [-i INPUT] [-h]\n\nIPPCode21 Interpret, Author: Ondřej Sloup (xsloup02)\n\noptional arguments:
   -s SOURCE, --source SOURCE
@@ -38,22 +39,22 @@ def argumentParse():
 
     if args.input is not None and not args.input.is_file():
             print("Input file not found")
-            ex(ErrorCodes.ERR_OPENING_FILES.value)
+            exit(ErrorCodes.ERR_OPENING_FILES.value)
 
     if args.source is not None and not args.source.is_file():
             print("Source file not found")
-            ex(ErrorCodes.ERR_OPENING_FILES.value)
+            exit(ErrorCodes.ERR_OPENING_FILES.value)
     return args
 
-def main():
+def main(args):
     """ Main program """
 
-    return
+    input_file = "lalala"
 
+    IPPCode20(args, input_file)
 
 if __name__ == "__main__":
     args = argumentParse()
-    validateSourceXML()
-    validateInput()
+    main(args)
 
-    main()
+
