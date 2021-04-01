@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<program language="IPPcode21">
+<program language="IPPcode21" name="dwe" description="fwefwe">
+    <instruction order="2" opcode="DPRINT">
+        <arg1 type="string">abc</arg1>
+    </instruction>
     <instruction order="1" opcode="WRITE">
         <arg1 type="int">0</arg1>
     </instruction>
-    <instruction order="2" opcode="PRINT">
-        <arg1 type="string">abc</arg1>
+    <instruction order="3" opcode="WRITE">
+        <arg1 type="int">0</arg1>
     </instruction>
 </program>
