@@ -4,11 +4,11 @@
 import argparse
 from sys import exit
 import pathlib
-import xml.etree.ElementTree as ET
 
 import ippcode_interpreter as ipp
 
 def argumentParse():
+    """ Parse the arguments """
     parser = argparse.ArgumentParser(add_help=False,
                                      prog="interpret", description='IPPCode21 Interpret, Author: Ondřej Sloup (xsloup02)')
     parser.add_argument('-s', '--source', type=pathlib.Path)
@@ -33,7 +33,7 @@ def argumentParse():
   -i INPUT, --input INPUT
                         File with inputs for interpration of source code
   -h, --help            This messages""")
-        ex(ErrorCodes.SUCCESS.value)
+        exit(ErrorCodes.SUCCESS.value)
 
 
     if args.input is not None and not args.input.is_file():
@@ -48,9 +48,7 @@ def argumentParse():
 def main(args):
     """ Main program """
 
-    input_file = "lalala"
-
-    ipp.ippcode.IPPCode20(args, input_file)
+    ipp.ippcode.IPPCode20(args.source, args.input)
 
 if __name__ == "__main__":
     args = argumentParse()

@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as ET
-from . import parser
+from .parser import Parser
 
 class IPPCode20:
-    def __init__(self, xml, input):
-        structure = parser.Parser(xml.source)
-        root = structure.tree.getroot()
-
+    """ Main function of the interpret, creates the structure and evaluate it """
+    def __init__(self, source, input):
+        structure = Parser(source, input)
         return
