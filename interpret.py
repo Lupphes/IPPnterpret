@@ -35,14 +35,13 @@ def argumentParse():
   -h, --help            This messages""")
         exit(ErrorCodes.SUCCESS.value)
 
-
     if args.input is not None and not args.input.is_file():
-            print("Input file not found")
-            exit(ipp.exception.ErrorCodes.ERR_OPENING_FILES.value)
+        print("Input file not found")
+        exit(ipp.exception.ErrorCodes.ERR_OPENING_FILES.value)
 
     if args.source is not None and not args.source.is_file():
-            print("Source file not found")
-            exit(ipp.exception.ErrorCodes.ERR_OPENING_FILES.value)
+        print("Source file not found")
+        exit(ipp.exception.ErrorCodes.ERR_OPENING_FILES.value)
     return args
 
 def main(args):
@@ -53,5 +52,3 @@ def main(args):
 if __name__ == "__main__":
     args = argumentParse()
     main(args)
-
-

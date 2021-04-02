@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from . import instructions as inst
+from .exception import ErrorCodes
 
 class Parser:
     """ Parses the whole source XML tree and provides the input which is needed fro the interpret to run """
@@ -23,9 +24,9 @@ class Parser:
             inst.Instruction(opcode_tag)
             created_opcode = inst.get_class_by_opcode(opcode_tag.attrib['opcode'].lower())
             created_opcode.validate_arguments(created_opcode, opcode_tag)
-
             
             print(created_opcode)
+            print(created_opcode.args)
 
 
         # sorted_tree = sorted(root, key=lambda child: child.attrib["order"])
@@ -56,7 +57,6 @@ class Parser:
             elif elem not in optional:
                 print("Incorrect argument in XML")
                 exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
-            
         if correct is False:
             print("Required argument in XML not found")
             exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)

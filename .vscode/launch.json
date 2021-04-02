@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "interpret.py",
             "console": "integratedTerminal",
-            "args": ["-s", "./tests/int-only/wis/write_test.src", "-i", "./tests/int-only/wis/write_test.in"]
+            "args": ["-s", "./tests/parse-only/mine/vojtaKod.out", "-i", "./tests/int-only/wis/write_test.in"]
         }
     ]
 }

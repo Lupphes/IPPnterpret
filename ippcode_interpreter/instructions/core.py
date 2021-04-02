@@ -1,13 +1,14 @@
 import xml.etree.ElementTree as ET
 from ..exception import ErrorCodes
 from ..parser import Parser
+import re
 
 
 class Instruction:
     def __init__(self, tag):
         self.tag = tag
         Parser.validate_tag_keys(tag, "instruction", required=[
-                                             "opcode", "order"], optional=[])
+            "opcode", "order"], optional=[])
         if not (tag.attrib["order"].isdigit() and int(tag.attrib["order"]) > 0):
             print("Order attribute needs to be a whole number bigger that 0")
             exit(ErrorCodes.ERR_XML_SYNTAX.value)
@@ -15,36 +16,86 @@ class Instruction:
 
     def validate_arguments(self, tag):
         args = getattr(self, "args")
-        print(str(args))
+        if len(args) != len(tag):
+            print("Number of arguments for this instruction doesn't match")
+            exit(ErrorCodes.ERR_XML_SYNTAX.value)
+
         for argument in tag:
-            print(argument.tag + " | " + str(argument.attrib))
-
-    def validate_var(self):
-
+            arg_reg = re.compile(r"(^arg)(\d+$)")
+            arg_number = arg_reg.match(argument.tag).groups()
+            if arg_number[0] == "arg" and arg_number[1] is not None:
+                if not argument.attrib["type"]:
+                    print("Type is not in the arguments")
+                    exit(ErrorCodes.ERR_XML_SYNTAX.value)
+                index = int(arg_number[1])-1
+                if args[index]:
+                    Instruction.validate_atribute_values(
+                        argument.attrib["type"], "" if (argument.text is None) else argument.text, args[index]["name"])
+                    args[index]["type"] = argument.attrib["type"]
+                    args[index]["value"] = argument.text
+                else:
+                    print("Argument has wrong value")
+                    exit(ErrorCodes.ERR_XML_SYNTAX.value)
+            else:
+                print("Tag has to be names 'arg' with trailing number")
+                exit(ErrorCodes.ERR_XML_SYNTAX.value)
         return
-    
-    def validate_symb(self):
 
+    @staticmethod
+    def validate_atribute_values(type_attrib, value_attrib, name):
+        regexType = {
+            "label": r"^[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
+            "type": r"^string|int|bool$",
+            "var": r"^(G|L|T)F@[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
+
+            "int": r"^[-+]?[0-9]+$",
+            "bool": r"^(true|false)$",
+            "string": r"^([^\\#\s]|(\\\d\d\d))*$",
+            "nil": r"^nil$"
+        }
+        constant_literal = ["int", "string", "bool"]
+        arg_reg = False
+
+
+        if name == "label" and type_attrib.lower() == "label":
+            arg_reg = re.compile(regexType[type_attrib])
+        elif name == "type" and type_attrib.lower() == "type":
+            arg_reg = re.compile(regexType[type_attrib])
+        elif name == "var" and type_attrib.lower() == "var":
+            arg_reg = re.compile(regexType[type_attrib])
+        elif name == "symb" and type_attrib.lower() == "var":
+            Instruction.validate_atribute_values("var", value_attrib, "var")
+            return
+        elif name == "symb" and type_attrib.lower() == "nil":
+            arg_reg = re.compile(regexType[type_attrib])
+        elif name == "symb" and type_attrib.lower() in constant_literal:
+            if type_attrib in regexType:
+                arg_reg = re.compile(regexType[type_attrib])
+
+        if arg_reg and arg_reg.match(value_attrib):
+            return
+
+        print("Argument is not specified correctly")
+        exit(ErrorCodes.ERR_XML_SYNTAX.value)
         return
-
-    def validate_label(self):
-
-        return
-
-    def validate_type(self):
-
-        return
-
 
 
 # Interactions with frames, function calling #
 
 class Move(Instruction):
     opcode = "move"
-    args = {
-        "var": None,
-        "symb": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -57,8 +108,8 @@ class Move(Instruction):
 
 class CreateFrame(Instruction):
     opcode = "createframe"
-    args = {
-    }
+    args = [
+    ]
 
     def __init__(self):
         return
@@ -71,8 +122,8 @@ class CreateFrame(Instruction):
 
 class PushFrame(Instruction):
     opcode = "pushframe"
-    args = {
-    }
+    args = [
+    ]
 
     def __init__(self):
         return
@@ -85,8 +136,8 @@ class PushFrame(Instruction):
 
 class PopFrame(Instruction):
     opcode = "popframe"
-    args = {
-    }
+    args = [
+    ]
 
     def __init__(self):
         return
@@ -99,9 +150,13 @@ class PopFrame(Instruction):
 
 class Defvar(Instruction):
     opcode = "defvar"
-    args = {
-        "var": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -114,9 +169,13 @@ class Defvar(Instruction):
 
 class Call(Instruction):
     opcode = "call"
-    args = {
-        "label": None
-    }
+    args = [
+        {
+            "name": "label",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -129,8 +188,8 @@ class Call(Instruction):
 
 class Return(Instruction):
     opcode = "return"
-    args = {
-    }
+    args = [
+    ]
 
     def __init__(self):
         return
@@ -145,9 +204,13 @@ class Return(Instruction):
 
 class Pushs(Instruction):
     opcode = "pushs"
-    args = {
-        "symb": None
-    }
+    args = [
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -160,9 +223,13 @@ class Pushs(Instruction):
 
 class Pops(Instruction):
     opcode = "pops"
-    args = {
-        "var": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -177,9 +244,23 @@ class Pops(Instruction):
 
 class Add(Instruction):
     opcode = "add"
-    args = {
-        "var": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -192,11 +273,23 @@ class Add(Instruction):
 
 class Sub(Instruction):
     opcode = "sub"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -209,11 +302,23 @@ class Sub(Instruction):
 
 class Mul(Instruction):
     opcode = "mul"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -226,11 +331,23 @@ class Mul(Instruction):
 
 class IDiv(Instruction):
     opcode = "idiv"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -242,11 +359,23 @@ class IDiv(Instruction):
 
 
 class Relation(Instruction):
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -279,11 +408,23 @@ class EQ(Relation):
 
 
 class Logic(Instruction):
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -318,8 +459,20 @@ class OR(Logic):
         return cls(*args, **kwargs)
 
 
-class NOT(Logic):
+class NOT(Instruction):
     opcode = "not"
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -332,10 +485,18 @@ class NOT(Logic):
 
 class Int2Char(Instruction):
     opcode = "int2char"
-    args = {
-        "var": None,
-        "symb": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -348,11 +509,23 @@ class Int2Char(Instruction):
 
 class Stri2Int(Instruction):
     opcode = "stri2int"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -367,10 +540,18 @@ class Stri2Int(Instruction):
 
 class Read(Instruction):
     opcode = "read"
-    args = {
-        "var": None,
-        "type": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "type",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -383,9 +564,13 @@ class Read(Instruction):
 
 class Write(Instruction):
     opcode = "write"
-    args = {
-        "symb": None
-    }
+    args = [
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -400,11 +585,23 @@ class Write(Instruction):
 
 class Concat(Instruction):
     opcode = "concat"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -417,10 +614,18 @@ class Concat(Instruction):
 
 class Strlen(Instruction):
     opcode = "strlen"
-    args = {
-        "var": None,
-        "symb": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -433,11 +638,23 @@ class Strlen(Instruction):
 
 class Getchar(Instruction):
     opcode = "getchar"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -450,11 +667,23 @@ class Getchar(Instruction):
 
 class Setchar(Instruction):
     opcode = "setchar"
-    args = {
-        "var": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -469,10 +698,18 @@ class Setchar(Instruction):
 
 class Type(Instruction):
     opcode = "type"
-    args = {
-        "var": None,
-        "symb": None
-    }
+    args = [
+        {
+            "name": "var",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -487,9 +724,13 @@ class Type(Instruction):
 
 class Label(Instruction):
     opcode = "label"
-    args = {
-        "label": None
-    }
+    args = [
+        {
+            "name": "label",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -502,9 +743,13 @@ class Label(Instruction):
 
 class Jump(Instruction):
     opcode = "jump"
-    args = {
-        "label": None
-    }
+    args = [
+        {
+            "name": "label",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -517,11 +762,23 @@ class Jump(Instruction):
 
 class JumpIfEq(Instruction):
     opcode = "jumpifeq"
-    args = {
-        "label": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "label",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -534,11 +791,23 @@ class JumpIfEq(Instruction):
 
 class JumpIfNeq(Instruction):
     opcode = "jumpifneq"
-    args = {
-        "label": None,
-        "symb1": None,
-        "symb2": None
-    }
+    args = [
+        {
+            "name": "label",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        },
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -551,9 +820,13 @@ class JumpIfNeq(Instruction):
 
 class Exit(Instruction):
     opcode = "exit"
-    args = {
-        "symb": None
-    }
+    args = [
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
@@ -568,22 +841,27 @@ class Exit(Instruction):
 
 class DPrint(Instruction):
     opcode = "dprint"
-    args = {
-        "symb": None
-    }
+    args = [
+        {
+            "name": "symb",
+            "value": None,
+            "type": None
+        }
+    ]
 
     def __init__(self):
         return
 
     @classmethod
-    def create(cls, *args, **kwargs):
+    def run(cls, *args, **kwargs):
         # do something
         return cls(*args, **kwargs)
 
 
-class Break:
+class Break(Instruction):
     opcode = "break"
-    number_of_args = 0
+    args = [
+    ]
 
     def __init__(self):
         return
