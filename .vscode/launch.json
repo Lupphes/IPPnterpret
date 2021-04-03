@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "interpret.py",
             "console": "integratedTerminal",
-            "args": ["-s", "tests/int-only/git/32/duplicit_order.src", "-i", "./tests/int-only/wis/write_test.in"]
+            "args": ["-s", "./tests/int-only/mine/mine_testing.src", "-i", "./tests/int-only/wis/write_test.in"]
         }
     ]
 }

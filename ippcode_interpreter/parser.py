@@ -23,10 +23,14 @@ class Parser:
         program_tag = parsed_tree.getroot()
         self.validate_header(program_tag)
 
-        code_string = "global_vars = {}"
+        label_string = "["
+        instruction_code = ""
+        resourses = {
+
+        }
 
         sorted_tree = sorted(program_tag, key=self.validate_order)
-        print(str(sorted_tree))
+
         for key, instruction_tag in enumerate(sorted_tree):
             if (key > 0):
                 if sorted_tree[key].attrib["order"] != sorted_tree[key-1].attrib["order"]:
@@ -48,12 +52,30 @@ class Parser:
                 tag=instruction_tag
             )
             instruction = instruction_class(instruction_tag)
-            print(instruction)
-            print(instruction.args)
-            print(instruction.order)
+            if instruction.opcode == "label":
+                label_string += self.get_label_from_instruction(instruction)+", "
+                
+            # print(instruction)
+            # print(instruction.args)
+            # print(instruction.order)
+            resourses.update({str(instruction.__class__.__name__): instruction})
+            instruction_code += instruction.__class__.__name__ + ".run()\n"
 
-        self.tree = parsed_tree
+        # self.tree = parsed_tree
+        label_string = "]" if label_string == "[" else label_string[:-2] + "]"
+        self.label_string = label_string
+        self.instruction_string = instruction_code
+        self.resourses = resourses
+        # print(label_string)
+        # print(instruction_code)
         return
+
+    def get_label_from_instruction(self, label_class) -> dict:
+        temp = {
+            "order": label_class.order,
+            "value": label_class.args[0]["value"]
+        }
+        return str(temp)
 
     def validate_order(self, tag: ET.Element) -> int:
         """ Checks if attribute order is valid """
@@ -80,7 +102,7 @@ class Parser:
         return
 
     @staticmethod
-    def validate_tag_keys(tag: ET.Element, name: str, required: List, optional: List = []) -> None:
+    def validate_tag_keys(tag: ET.Element, name: str, required: list, optional: list = []) -> None:
         """ Provides validation of tag keys """
         if tag.tag != name:  # Validates the name of the tag
             logging.error(f"'{tag.tag}' is not valid XML tag in this context")
@@ -94,7 +116,7 @@ class Parser:
         return
 
     @staticmethod
-    def validate_tag_values(attributes: Dict, possibleValues: Dict) -> None:
+    def validate_tag_values(attributes: dict, possibleValues: dict) -> None:
         """ Provides validation of tag values """
         for artrib in attributes:
             for possible_valid in possibleValues:

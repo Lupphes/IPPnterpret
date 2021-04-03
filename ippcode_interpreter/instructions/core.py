@@ -37,7 +37,7 @@ class Instruction:
                 index = int(arg_number[1])-1
                 if len(args) > index and index >= 0:  # and fidning if exists
                     self.validate_attribute_values(
-                        self, # Class is not initialized yet due to checking
+                        self,  # Class is not initialized yet due to checking
                         type_attrib=argument.attrib["type"],
                         # The library returns None If text is ""
                         value_attrib="" if argument.text is None else argument.text,
@@ -56,7 +56,7 @@ class Instruction:
     def validate_attribute_values(self, type_attrib: str, value_attrib: str, name: str) -> None:
         regexType = {
             "label": r"^[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
-            "type": r"(^string|int|bool)$",
+            # "type": r"^(string|int|bool)$",
             "var": r"^(G|L|T)F@[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
             "int": r"^[-+]?[0-9]+$",
             "bool": r"^(true|false)$",
@@ -94,7 +94,6 @@ class Instruction:
 
 class Move(Instruction):
     opcode = "move"
-    
     args = [
         {
             "name": "var",
@@ -112,6 +111,10 @@ class Move(Instruction):
         super().__init__(tag=tag)
         return
 
+    def run(self):
+
+        return
+
 
 class CreateFrame(Instruction):
     opcode = "createframe"
@@ -122,10 +125,9 @@ class CreateFrame(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class PushFrame(Instruction):
@@ -137,10 +139,9 @@ class PushFrame(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class PopFrame(Instruction):
@@ -152,10 +153,9 @@ class PopFrame(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Defvar(Instruction):
@@ -172,10 +172,9 @@ class Defvar(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Call(Instruction):
@@ -192,10 +191,9 @@ class Call(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Return(Instruction):
@@ -207,10 +205,9 @@ class Return(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 # Interactions with stack  #
@@ -229,10 +226,9 @@ class Pushs(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Pops(Instruction):
@@ -249,10 +245,9 @@ class Pops(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 # Arithmetical, relations, bool functions  #
 
@@ -281,10 +276,9 @@ class Add(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Sub(Instruction):
@@ -311,10 +305,9 @@ class Sub(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Mul(Instruction):
@@ -341,10 +334,9 @@ class Mul(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class IDiv(Instruction):
@@ -371,10 +363,9 @@ class IDiv(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Relation(Instruction):
@@ -400,10 +391,9 @@ class Relation(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class LT(Relation):
@@ -453,10 +443,9 @@ class Logic(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class AND(Logic):
@@ -466,10 +455,9 @@ class AND(Logic):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class OR(Logic):
@@ -479,10 +467,9 @@ class OR(Logic):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class NOT(Instruction):
@@ -504,10 +491,9 @@ class NOT(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Int2Char(Instruction):
@@ -529,10 +515,9 @@ class Int2Char(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Stri2Int(Instruction):
@@ -559,10 +544,9 @@ class Stri2Int(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 # Input/Output  #
@@ -586,10 +570,9 @@ class Read(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Write(Instruction):
@@ -606,10 +589,9 @@ class Write(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 # Interaction with strings  #
@@ -638,10 +620,9 @@ class Concat(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Strlen(Instruction):
@@ -663,10 +644,9 @@ class Strlen(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Getchar(Instruction):
@@ -693,10 +673,9 @@ class Getchar(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Setchar(Instruction):
@@ -723,10 +702,9 @@ class Setchar(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 # Interaction with types  #
@@ -750,10 +728,9 @@ class Type(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 # Flow control  #
@@ -772,10 +749,8 @@ class Label(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+        return
 
 
 class Jump(Instruction):
@@ -792,10 +767,9 @@ class Jump(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class JumpIfEq(Instruction):
@@ -822,10 +796,9 @@ class JumpIfEq(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class JumpIfNeq(Instruction):
@@ -852,10 +825,9 @@ class JumpIfNeq(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 class Exit(Instruction):
@@ -872,10 +844,9 @@ class Exit(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
 
 
 # Debug tools
@@ -894,10 +865,9 @@ class DPrint(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def run(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+        print(self.args[0]["value"])
+        return
 
 
 class Break(Instruction):
@@ -909,7 +879,6 @@ class Break(Instruction):
         super().__init__(tag=tag)
         return
 
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
+    def run(self):
+
+        return
