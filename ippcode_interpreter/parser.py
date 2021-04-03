@@ -23,33 +23,52 @@ class Parser:
         program_tag = parsed_tree.getroot()
         self.validate_header(program_tag)
 
-        self.code_string = ""
+        code_string = "global_vars = {}"
 
-        for instruction_tag in program_tag:
-            inst.Instruction(instruction_tag)
-            created_instruction = inst.get_class_by_opcode(
+        sorted_tree = sorted(program_tag, key=self.validate_order)
+        print(str(sorted_tree))
+        for key, instruction_tag in enumerate(sorted_tree):
+            if (key > 0):
+                if sorted_tree[key].attrib["order"] != sorted_tree[key-1].attrib["order"]:
+                    previous_number = instruction.order
+                else:
+                    logging.error("The instructions order can't be duplicated")
+                    exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+
+            instruction_class = inst.get_class_by_opcode(
                 opcode=instruction_tag.attrib['opcode'].lower()
             )
 
-            if (created_instruction == None):  # If instruction doesn't exist
+            if (instruction_class == None):  # If instruction doesn't exist
                 logging.error("Specified instruction doesn't exist")
                 exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
 
-            created_instruction.validate_arguments(
-                self=created_instruction,
+            instruction_class.validate_arguments(
+                self=instruction_class,
                 tag=instruction_tag
             )
-
-            print(created_instruction)
-            print(created_instruction.args)
-
-        # sorted_tree = sorted(root, key=lambda child: child.attrib["order"])
-
-        # for instruction in sorted_tree:
-        #     print(instruction.tag + " || " + instruction.attrib["order"])
+            instruction = instruction_class(instruction_tag)
+            print(instruction)
+            print(instruction.args)
+            print(instruction.order)
 
         self.tree = parsed_tree
         return
+
+    def validate_order(self, tag: ET.Element) -> int:
+        """ Checks if attribute order is valid """
+        Parser.validate_tag_keys(
+            tag=tag,
+            name="instruction",
+            required=["opcode", "order"],
+            optional=[]
+        )
+        if not (tag.attrib["order"].isdigit() and int(tag.attrib["order"]) > 0):
+            logging.error(
+                "Order attribute needs to be a whole number bigger that 0")
+            exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+
+        return int(tag.attrib["order"])
 
     @staticmethod
     def validate_header(program_tag: ET.Element) -> None:

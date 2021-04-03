@@ -57,7 +57,7 @@ def setupLogging():
 def main(args):
     """ Main program """
 
-    ipp.ippcode.IPPCode20(args.source, args.input)
+    ipp.ippcode.IPPCode21(args.source, args.input)
 
 if __name__ == "__main__":
     setupLogging()

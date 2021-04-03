@@ -66,7 +66,7 @@ function commentsTrim($line)
 function headerValidation($line, $header)
 {
     // If you want to use automatic tests, change the header
-    if (preg_match("/^.ippcode20$/i", trim(strtolower($line)))) {
+    if (preg_match("/^.ippcode21$/i", trim(strtolower($line)))) {
         $header = true;
     }
     else {

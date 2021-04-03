@@ -9,22 +9,7 @@ import logging
 class Instruction:
     def __init__(self, tag: ET.Element):
         self.tag = tag
-        Parser.validate_tag_keys(
-            tag=tag,
-            name="instruction",
-            required=["opcode", "order"],
-            optional=[]
-        )
-        self.validate_order(tag=tag)
-        return
-
-    def validate_order(self, tag: ET.Element) -> None:
-        """ Checks if attribute order is valid """
-        if not (tag.attrib["order"].isdigit() and int(tag.attrib["order"]) > 0):
-            logging.error(
-                "Order attribute needs to be a whole number bigger that 0")
-            exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
-
+        self.order = int(tag.attrib["order"])
         return
 
     def validate_arguments(self, tag: ET.Element) -> None:
@@ -109,6 +94,7 @@ class Instruction:
 
 class Move(Instruction):
     opcode = "move"
+    
     args = [
         {
             "name": "var",
@@ -122,13 +108,9 @@ class Move(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
-
-    @classmethod
-    def create(cls, *args, **kwargs):
-        # do something
-        return cls(*args, **kwargs)
 
 
 class CreateFrame(Instruction):
@@ -136,7 +118,8 @@ class CreateFrame(Instruction):
     args = [
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -150,7 +133,8 @@ class PushFrame(Instruction):
     args = [
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -164,7 +148,8 @@ class PopFrame(Instruction):
     args = [
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -183,7 +168,8 @@ class Defvar(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -202,7 +188,8 @@ class Call(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -216,7 +203,8 @@ class Return(Instruction):
     args = [
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -237,7 +225,8 @@ class Pushs(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -256,7 +245,8 @@ class Pops(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -287,7 +277,8 @@ class Add(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -316,7 +307,8 @@ class Sub(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -345,7 +337,8 @@ class Mul(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -374,7 +367,8 @@ class IDiv(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -402,7 +396,8 @@ class Relation(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -414,21 +409,24 @@ class Relation(Instruction):
 class LT(Relation):
     opcode = "lt"
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
 
 class GT(Relation):
     opcode = "gt"
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
 
 class EQ(Relation):
     opcode = "eq"
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
 
@@ -451,7 +449,8 @@ class Logic(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -463,7 +462,8 @@ class Logic(Instruction):
 class AND(Logic):
     opcode = "and"
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -475,7 +475,8 @@ class AND(Logic):
 class OR(Logic):
     opcode = "or"
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -499,7 +500,8 @@ class NOT(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -523,7 +525,8 @@ class Int2Char(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -552,7 +555,8 @@ class Stri2Int(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -578,7 +582,8 @@ class Read(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -597,7 +602,8 @@ class Write(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -628,7 +634,8 @@ class Concat(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -652,7 +659,8 @@ class Strlen(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -681,7 +689,8 @@ class Getchar(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -710,7 +719,8 @@ class Setchar(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -736,7 +746,8 @@ class Type(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -757,7 +768,8 @@ class Label(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -776,7 +788,8 @@ class Jump(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -805,7 +818,8 @@ class JumpIfEq(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -834,7 +848,8 @@ class JumpIfNeq(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -853,7 +868,8 @@ class Exit(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -874,7 +890,8 @@ class DPrint(Instruction):
         }
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
@@ -888,7 +905,8 @@ class Break(Instruction):
     args = [
     ]
 
-    def __init__(self):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
         return
 
     @classmethod
