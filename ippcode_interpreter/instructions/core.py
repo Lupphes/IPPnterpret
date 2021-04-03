@@ -2,70 +2,95 @@ import xml.etree.ElementTree as ET
 from ..exception import ErrorCodes
 from ..parser import Parser
 import re
+import typing
+import logging
 
 
 class Instruction:
-    def __init__(self, tag):
+    def __init__(self, tag: ET.Element):
         self.tag = tag
-        Parser.validate_tag_keys(tag, "instruction", required=[
-            "opcode", "order"], optional=[])
-        if not (tag.attrib["order"].isdigit() and int(tag.attrib["order"]) > 0):
-            print("Order attribute needs to be a whole number bigger that 0")
-            exit(ErrorCodes.ERR_XML_SYNTAX.value)
+        Parser.validate_tag_keys(
+            tag=tag,
+            name="instruction",
+            required=["opcode", "order"],
+            optional=[]
+        )
+        self.validate_order(tag=tag)
         return
 
-    def validate_arguments(self, tag):
+    def validate_order(self, tag: ET.Element) -> None:
+        """ Checks if attribute order is valid """
+        if not (tag.attrib["order"].isdigit() and int(tag.attrib["order"]) > 0):
+            logging.error(
+                "Order attribute needs to be a whole number bigger that 0")
+            exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+
+        return
+
+    def validate_arguments(self, tag: ET.Element) -> None:
         args = getattr(self, "args")
         if len(args) != len(tag):
-            print("Number of arguments for this instruction doesn't match")
-            exit(ErrorCodes.ERR_XML_SYNTAX.value)
+            logging.error(
+                "Number of arguments for this instruction doesn't match")
+            exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
 
         for argument in tag:
             arg_reg = re.compile(r"(^arg)(\d+$)")
-            arg_number = arg_reg.match(argument.tag).groups()
+            arg_number = arg_reg.match(argument.tag)
+
+            if arg_number is None:
+                logging.error("Tag 'arg' does not have correct syntax")
+                exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+            arg_number = arg_number.groups()
+
             if arg_number[0] == "arg" and arg_number[1] is not None:
-                if not argument.attrib["type"]:
-                    print("Type is not in the arguments")
-                    exit(ErrorCodes.ERR_XML_SYNTAX.value)
+                if not argument.attrib["type"]:  # Validation of attribute
+                    logging.error("Type is not in the arguments")
+                    exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+
+                # Indexing the array with this value
                 index = int(arg_number[1])-1
-                if args[index]:
-                    Instruction.validate_atribute_values(
-                        argument.attrib["type"], "" if (argument.text is None) else argument.text, args[index]["name"])
+                if len(args) > index and index >= 0:  # and fidning if exists
+                    self.validate_attribute_values(
+                        self, # Class is not initialized yet due to checking
+                        type_attrib=argument.attrib["type"],
+                        # The library returns None If text is ""
+                        value_attrib="" if argument.text is None else argument.text,
+                        name=args[index]["name"]
+                    )
                     args[index]["type"] = argument.attrib["type"]
                     args[index]["value"] = argument.text
                 else:
-                    print("Argument has wrong value")
-                    exit(ErrorCodes.ERR_XML_SYNTAX.value)
+                    logging.error("Argument has wrong value")
+                    exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
             else:
-                print("Tag has to be names 'arg' with trailing number")
-                exit(ErrorCodes.ERR_XML_SYNTAX.value)
+                logging.error("Tag has to be names 'arg' with trailing number")
+                exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
         return
 
-    @staticmethod
-    def validate_atribute_values(type_attrib, value_attrib, name):
+    def validate_attribute_values(self, type_attrib: str, value_attrib: str, name: str) -> None:
         regexType = {
             "label": r"^[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
-            "type": r"^string|int|bool$",
+            "type": r"(^string|int|bool)$",
             "var": r"^(G|L|T)F@[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
-
             "int": r"^[-+]?[0-9]+$",
             "bool": r"^(true|false)$",
             "string": r"^([^\\#\s]|(\\\d\d\d))*$",
             "nil": r"^nil$"
         }
+
         constant_literal = ["int", "string", "bool"]
         arg_reg = False
 
-
+        if name == "symb" and type_attrib.lower() == "var":
+            type_attrib = "var"
+            name = "var"
         if name == "label" and type_attrib.lower() == "label":
             arg_reg = re.compile(regexType[type_attrib])
         elif name == "type" and type_attrib.lower() == "type":
             arg_reg = re.compile(regexType[type_attrib])
         elif name == "var" and type_attrib.lower() == "var":
             arg_reg = re.compile(regexType[type_attrib])
-        elif name == "symb" and type_attrib.lower() == "var":
-            Instruction.validate_atribute_values("var", value_attrib, "var")
-            return
         elif name == "symb" and type_attrib.lower() == "nil":
             arg_reg = re.compile(regexType[type_attrib])
         elif name == "symb" and type_attrib.lower() in constant_literal:
@@ -75,8 +100,8 @@ class Instruction:
         if arg_reg and arg_reg.match(value_attrib):
             return
 
-        print("Argument is not specified correctly")
-        exit(ErrorCodes.ERR_XML_SYNTAX.value)
+        logging.error("Argument is not specified correctly")
+        exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
         return
 
 

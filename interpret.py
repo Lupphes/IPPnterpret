@@ -4,8 +4,10 @@
 import argparse
 from sys import exit
 import pathlib
+import logging
 
 import ippcode_interpreter as ipp
+
 
 def argumentParse():
     """ Parse the arguments """
@@ -36,13 +38,21 @@ def argumentParse():
         exit(ErrorCodes.SUCCESS.value)
 
     if args.input is not None and not args.input.is_file():
-        print("Input file not found")
+        logging.error("Input file not found")
         exit(ipp.exception.ErrorCodes.ERR_OPENING_FILES.value)
 
     if args.source is not None and not args.source.is_file():
-        print("Source file not found")
+        logging.error("Source file not found")
         exit(ipp.exception.ErrorCodes.ERR_OPENING_FILES.value)
     return args
+
+def setupLogging():
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s:[%(asctime)s] - %(message)s',
+        datefmt='%m/%d/%Y %H:%M:%S')
+    return
 
 def main(args):
     """ Main program """
@@ -50,5 +60,6 @@ def main(args):
     ipp.ippcode.IPPCode20(args.source, args.input)
 
 if __name__ == "__main__":
+    setupLogging()
     args = argumentParse()
     main(args)

@@ -160,7 +160,10 @@ Usage:  test.php [args...]
     }
 
     // I'm sorry to whoever is reading this
-    if (!file_exists($isJexamxmlOnlySet) || !file_exists($isJexamcfgOnlySet) || !file_exists($isDirectorySet)) {
+    if (!file_exists($isDirectorySet)) {
+        exit(41);
+    }
+    if ($isParseOnlySet && !(!file_exists($isJexamxmlOnlySet) || !file_exists($isJexamcfgOnlySet))) {
         exit(41);
     }
     if ($isIntOnlySet && !file_exists($isIntScriptSet)) {
@@ -406,7 +409,7 @@ function generateWeb($tests, $mode)
     </html>";
 
     echo $defaultHTML;
-    // createFile("index.html", $defaultHTML);
+    createFile("index.html", $defaultHTML);
 
     return;
 }
@@ -450,7 +453,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            // echo "$fileName" . "\n";
+            echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
