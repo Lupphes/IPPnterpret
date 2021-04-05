@@ -1,9 +1,9 @@
 import xml.etree.ElementTree as ET
-from ..exception import ErrorCodes
+from ..exception import IPPCodeSyntaxError
 from ..parser import Parser
 import re
 import typing
-import logging
+from ..utils import wrap_with_logging
 
 
 class Instruction:
@@ -15,23 +15,23 @@ class Instruction:
     def validate_arguments(self, tag: ET.Element) -> None:
         args = getattr(self, "args")
         if len(args) != len(tag):
-            logging.error(
-                "Number of arguments for this instruction doesn't match")
-            exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+            raise IPPCodeSyntaxError(
+                "Number of arguments for this instruction doesn't match"
+            )
 
         for argument in tag:
             arg_reg = re.compile(r"(^arg)(\d+$)")
             arg_number = arg_reg.match(argument.tag)
 
             if arg_number is None:
-                logging.error("Tag 'arg' does not have correct syntax")
-                exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+                raise IPPCodeSyntaxError(
+                    "Tag 'arg' does not have correct syntax"
+                )
             arg_number = arg_number.groups()
 
             if arg_number[0] == "arg" and arg_number[1] is not None:
                 if not argument.attrib["type"]:  # Validation of attribute
-                    logging.error("Type is not in the arguments")
-                    exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+                    raise IPPCodeSyntaxError("Type is not in the arguments")
 
                 # Indexing the array with this value
                 index = int(arg_number[1])-1
@@ -46,17 +46,20 @@ class Instruction:
                     args[index]["type"] = argument.attrib["type"]
                     args[index]["value"] = argument.text
                 else:
-                    logging.error("Argument has wrong value")
-                    exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+                    raise IPPCodeSyntaxError(
+                        "Specified argument has wrong value"
+                    )
             else:
-                logging.error("Tag has to be names 'arg' with trailing number")
-                exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+                raise IPPCodeSyntaxError(
+                    "Tag has to be names 'arg' with trailing number"
+                )
+
         return
 
     def validate_attribute_values(self, type_attrib: str, value_attrib: str, name: str) -> None:
         regexType = {
             "label": r"^[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
-            # "type": r"^(string|int|bool)$",
+            "type": r"^(string|int|bool)$",
             "var": r"^(G|L|T)F@[a-zA-Z_\-$!?&%*][a-zA-Z0-9]*",
             "int": r"^[-+]?[0-9]+$",
             "bool": r"^(true|false)$",
@@ -85,14 +88,21 @@ class Instruction:
         if arg_reg and arg_reg.match(value_attrib):
             return
 
-        logging.error("Argument is not specified correctly")
-        exit(ErrorCodes.ERR_XML_UNEXPECTED_STRUCT.value)
+        raise IPPCodeSyntaxError("Argument is not specified correctly")
         return
 
+    @classmethod
+    def create_mangled_name(cls, order: int) -> str:
+        return f"instruction_{cls.__name__.lower()}_{order}"
+
+    def run(self):
+        pass
 
 # Interactions with frames, function calling #
 
+
 class Move(Instruction):
+    handler_function = "null_handler"
     opcode = "move"
     args = [
         {
@@ -111,12 +121,9 @@ class Move(Instruction):
         super().__init__(tag=tag)
         return
 
-    def run(self):
-
-        return
-
 
 class CreateFrame(Instruction):
+    handler_function = "create_temp_frame"
     opcode = "createframe"
     args = [
     ]
@@ -125,12 +132,9 @@ class CreateFrame(Instruction):
         super().__init__(tag=tag)
         return
 
-    def run(self):
-
-        return
-
 
 class PushFrame(Instruction):
+    handler_function = "push_temp_frame"
     opcode = "pushframe"
     args = [
     ]
@@ -139,12 +143,9 @@ class PushFrame(Instruction):
         super().__init__(tag=tag)
         return
 
-    def run(self):
-
-        return
-
 
 class PopFrame(Instruction):
+    handler_function = "pop_temp_frame"
     opcode = "popframe"
     args = [
     ]
@@ -153,12 +154,9 @@ class PopFrame(Instruction):
         super().__init__(tag=tag)
         return
 
-    def run(self):
-
-        return
-
 
 class Defvar(Instruction):
+    handler_function = "define_variable"
     opcode = "defvar"
     args = [
         {
@@ -173,11 +171,16 @@ class Defvar(Instruction):
         return
 
     def run(self):
-
-        return
+        return {
+            "scope": self.args[0]["value"].split("@")[0],
+            "name": self.args[0]["value"].split("@")[1],
+            "type": typing.Any,
+            "value": None
+        }
 
 
 class Call(Instruction):
+    handler_function = "null_handler"
     opcode = "call"
     args = [
         {
@@ -197,6 +200,7 @@ class Call(Instruction):
 
 
 class Return(Instruction):
+    handler_function = "null_handler"
     opcode = "return"
     args = [
     ]
@@ -213,6 +217,7 @@ class Return(Instruction):
 # Interactions with stack  #
 
 class Pushs(Instruction):
+    handler_function = "null_handler"
     opcode = "pushs"
     args = [
         {
@@ -232,6 +237,7 @@ class Pushs(Instruction):
 
 
 class Pops(Instruction):
+    handler_function = "null_handler"
     opcode = "pops"
     args = [
         {
@@ -253,6 +259,7 @@ class Pops(Instruction):
 
 
 class Add(Instruction):
+    handler_function = "null_handler"
     opcode = "add"
     args = [
         {
@@ -282,6 +289,7 @@ class Add(Instruction):
 
 
 class Sub(Instruction):
+    handler_function = "null_handler"
     opcode = "sub"
     args = [
         {
@@ -311,6 +319,7 @@ class Sub(Instruction):
 
 
 class Mul(Instruction):
+    handler_function = "null_handler"
     opcode = "mul"
     args = [
         {
@@ -340,6 +349,7 @@ class Mul(Instruction):
 
 
 class IDiv(Instruction):
+    handler_function = "null_handler"
     opcode = "idiv"
     args = [
         {
@@ -397,6 +407,7 @@ class Relation(Instruction):
 
 
 class LT(Relation):
+    handler_function = "null_handler"
     opcode = "lt"
 
     def __init__(self, tag):
@@ -405,6 +416,7 @@ class LT(Relation):
 
 
 class GT(Relation):
+    handler_function = "null_handler"
     opcode = "gt"
 
     def __init__(self, tag):
@@ -413,6 +425,7 @@ class GT(Relation):
 
 
 class EQ(Relation):
+    handler_function = "null_handler"
     opcode = "eq"
 
     def __init__(self, tag):
@@ -449,6 +462,7 @@ class Logic(Instruction):
 
 
 class AND(Logic):
+    handler_function = "null_handler"
     opcode = "and"
 
     def __init__(self, tag):
@@ -461,6 +475,7 @@ class AND(Logic):
 
 
 class OR(Logic):
+    handler_function = "null_handler"
     opcode = "or"
 
     def __init__(self, tag):
@@ -473,6 +488,7 @@ class OR(Logic):
 
 
 class NOT(Instruction):
+    handler_function = "null_handler"
     opcode = "not"
     args = [
         {
@@ -497,6 +513,7 @@ class NOT(Instruction):
 
 
 class Int2Char(Instruction):
+    handler_function = "null_handler"
     opcode = "int2char"
     args = [
         {
@@ -521,6 +538,7 @@ class Int2Char(Instruction):
 
 
 class Stri2Int(Instruction):
+    handler_function = "null_handler"
     opcode = "stri2int"
     args = [
         {
@@ -552,6 +570,7 @@ class Stri2Int(Instruction):
 # Input/Output  #
 
 class Read(Instruction):
+    handler_function = "null_handler"
     opcode = "read"
     args = [
         {
@@ -576,6 +595,7 @@ class Read(Instruction):
 
 
 class Write(Instruction):
+    handler_function = "null_handler"
     opcode = "write"
     args = [
         {
@@ -597,6 +617,7 @@ class Write(Instruction):
 # Interaction with strings  #
 
 class Concat(Instruction):
+    handler_function = "null_handler"
     opcode = "concat"
     args = [
         {
@@ -626,6 +647,7 @@ class Concat(Instruction):
 
 
 class Strlen(Instruction):
+    handler_function = "null_handler"
     opcode = "strlen"
     args = [
         {
@@ -650,6 +672,7 @@ class Strlen(Instruction):
 
 
 class Getchar(Instruction):
+    handler_function = "null_handler"
     opcode = "getchar"
     args = [
         {
@@ -679,6 +702,7 @@ class Getchar(Instruction):
 
 
 class Setchar(Instruction):
+    handler_function = "null_handler"
     opcode = "setchar"
     args = [
         {
@@ -710,6 +734,7 @@ class Setchar(Instruction):
 # Interaction with types  #
 
 class Type(Instruction):
+    handler_function = "null_handler"
     opcode = "type"
     args = [
         {
@@ -736,6 +761,7 @@ class Type(Instruction):
 # Flow control  #
 
 class Label(Instruction):
+    handler_function = "null_handler"
     opcode = "label"
     args = [
         {
@@ -750,10 +776,11 @@ class Label(Instruction):
         return
 
     def run(self):
-        return
+        return "It works"
 
 
 class Jump(Instruction):
+    handler_function = "null_handler"
     opcode = "jump"
     args = [
         {
@@ -773,6 +800,7 @@ class Jump(Instruction):
 
 
 class JumpIfEq(Instruction):
+    handler_function = "null_handler"
     opcode = "jumpifeq"
     args = [
         {
@@ -802,6 +830,7 @@ class JumpIfEq(Instruction):
 
 
 class JumpIfNeq(Instruction):
+    handler_function = "null_handler"
     opcode = "jumpifneq"
     args = [
         {
@@ -831,6 +860,7 @@ class JumpIfNeq(Instruction):
 
 
 class Exit(Instruction):
+    handler_function = "null_handler"
     opcode = "exit"
     args = [
         {
@@ -852,6 +882,7 @@ class Exit(Instruction):
 # Debug tools
 
 class DPrint(Instruction):
+    handler_function = "null_handler"
     opcode = "dprint"
     args = [
         {
@@ -871,6 +902,7 @@ class DPrint(Instruction):
 
 
 class Break(Instruction):
+    handler_function = "null_handler"
     opcode = "break"
     args = [
     ]

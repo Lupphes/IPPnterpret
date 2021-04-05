@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 from .parser import Parser
+from .memory import Memory
+from .utils import wrap_with_logging
 
 
 class IPPCode21:
@@ -7,7 +9,18 @@ class IPPCode21:
 
     def __init__(self, source, input):
         parsed_code = Parser(source, input)
-        # print(parsed_code.instruction_string)
-        # print(parsed_code.resourses)
-        exec(parsed_code.instruction_string, parsed_code.resourses)
-        return
+        code_string = "@wrap_with_logging\ndef main():\n"
+
+        resources = {
+            "memory": Memory(),
+            "wrap_with_logging": wrap_with_logging
+        }
+
+        for mangled in parsed_code.mangled_instructions:
+            key, instruction = list(mangled.items())[0]
+            resources[key] = instruction
+            code_string += f"    memory.{instruction.handler_function}({key}.run())\n"
+
+        code_string += "main()"
+
+        exec(code_string, resources)
