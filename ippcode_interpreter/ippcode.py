@@ -32,6 +32,7 @@ class IPPCode21:
                     sys.exit(52)
             elif instance.opcode == "jumpifeq":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
+                    # print(resources["memory"]["jump_value"])
                     pass
                 else:
                     sys.exit(52)
@@ -50,7 +51,10 @@ class IPPCode21:
                     sys.exit(52)
                 index += 1
             elif instance.opcode == "return":
+                if return_position:
                     index = return_position.pop() + 1
+                else:
+                    sys.exit(55)
             else:
                 resources[instance.mangled_name] = instance
                 code_string += f"    memory.{instance.handler_function}({instance.mangled_name}.run())\n"

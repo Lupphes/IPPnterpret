@@ -273,7 +273,7 @@ function main($argv)
         if (!$header) {
             $header = headerValidation($line, $header);
             $xml->startElement("program");
-            $xml->writeAttribute("language", "IPPcode20");
+            $xml->writeAttribute("language", "IPPcode21");
             continue;
         }
 

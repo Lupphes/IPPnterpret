@@ -475,9 +475,6 @@ function main($argv)
                 "outputCheck" => null,
             ];
 
-
-
-
             if ($arguments["isInterpretOnly"]) {
                 $outputPythonFile = tmpfile();
                 $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
@@ -512,10 +509,9 @@ function main($argv)
                 $pathOutput = stream_get_meta_data($outputFile)['uri'];
                 exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
 
-                $value["returnedValue"] = $returnedValue;
-
                 if ($arguments["isParseOnly"]) {
                     if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
+                        $value["returnedValue"] = $returnedValue;
                         exec("java -jar " . $arguments["jexamxmlPath"] . " $filePath.out $pathOutput /dev/null " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
                         $value["outputCheck"] = $resultXML;
                         if ($resultXML == 0) {
@@ -538,8 +534,9 @@ function main($argv)
                     if ($returnedValue == 0) {
                         $outputPythonFile = tmpfile();
                         $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
-                        exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $filePath.src --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
-
+                        exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $pathOutput --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
+                        $value["returnedValue"] = $returnedValue;
+                        echo file_get_contents($pathPythonOutput);
                         if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
                             exec("diff $pathPythonOutput $filePath.out", $output, $returnedDiff);
 
