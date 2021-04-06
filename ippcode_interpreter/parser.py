@@ -2,6 +2,8 @@ import xml.etree.ElementTree as ET
 from . import instructions as inst
 from .exception import InvalidXMLSyntax, XMLParsingError, IPPCodeSyntaxError
 
+import sys
+
 
 class Parser:
     """ Parses the whole source XML tree and provides the input which is needed for the interpret to run """
@@ -21,50 +23,59 @@ class Parser:
 
         sorted_tree = sorted(program_tag, key=self.validate_order)
 
-        label_string = "["
-        mangled_instructions = []
+        self.mangled_instructions = {
+            "instructions": [],
+            "labels": {}
+        }
 
-        for key, instruction_tag in enumerate(sorted_tree):
-            if key > 0:
-                if sorted_tree[key].attrib["order"] != sorted_tree[key-1].attrib["order"]:
+        self.program_length = len(sorted_tree)
+
+        previous_label = None
+
+        for index, instruction_tag in enumerate(sorted_tree):
+            if index > 0:
+                if sorted_tree[index].attrib["order"] != sorted_tree[index-1].attrib["order"]:
                     previous_number = instruction.order
                 else:
                     raise IPPCodeSyntaxError(
-                        "The order must be unique for each instruction")
+                        "The order must be unique for each instruction"
+                    )
 
             instruction_class = inst.get_class_by_opcode(
                 opcode=instruction_tag.attrib['opcode'].lower()
             )
-
             if instruction_class is None:  # If instruction doesn't exist
                 raise IPPCodeSyntaxError("Specified instruction doesn't exist")
 
-            instruction_class.validate_arguments(
-                self=instruction_class,
-                tag=instruction_tag
-            )
-
             instruction = instruction_class(instruction_tag)
             if instruction.opcode == "label":
-                label_string += self.get_label_from_instruction(
-                    instruction) + ", "
+                new_label = instruction.args[0]["value"]
 
-            mangled_instructions.append({
-                instruction.create_mangled_name(instruction.order): instruction
-            })
+                if new_label in self.mangled_instructions["labels"]:
+                    sys.exit(52)
+                else:
+                    instruction.define(start=index, end=self.program_length - 1)
+                    if previous_label is not None:
+                        start = self.mangled_instructions["labels"][previous_label].start
+                        end = index - 1
+                        self.mangled_instructions["labels"][previous_label].define(
+                            start=start, 
+                            end=end
+                        )
 
-        label_string = "]" if label_string == "[" else label_string[:-2] + "]"
-        self.label_string = label_string
-        self.mangled_instructions = mangled_instructions
-
-        return
+                    self.mangled_instructions["labels"][new_label] = instruction
+                    previous_label = new_label
+                    
+                    self.mangled_instructions["instructions"].append(instruction)
+            else:
+                self.mangled_instructions["instructions"].append(
+                    instruction)
 
     def get_label_from_instruction(self, label_class) -> dict:
-        temp = {
+        return {
             "order": label_class.order,
             "value": label_class.args[0]["value"]
         }
-        return str(temp)
 
     def validate_order(self, tag: ET.Element) -> int:
         """ Checks if attribute order is valid """
@@ -91,7 +102,7 @@ class Parser:
         )
         Parser.validate_tag_values(
             attributes=program_tag.attrib,
-            possibleValues={"language": ["ippcode20"]}
+            possibleValues={"language": ["ippcode21"]}
         )
         return
 

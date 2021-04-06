@@ -10,11 +10,15 @@ class Instruction:
     def __init__(self, tag: ET.Element):
         self.tag = tag
         self.order = int(tag.attrib["order"])
-        return
+        self.validate_arguments(tag)
+
+    @property
+    def mangled_name(self) -> str:
+        return f"instruction_{self.__class__.__name__.lower()}_{self.order}"
 
     def validate_arguments(self, tag: ET.Element) -> None:
-        args = getattr(self, "args")
-        if len(args) != len(tag):
+        self.args = getattr(self, "args")
+        if len(self.args) != len(tag):
             raise IPPCodeSyntaxError(
                 "Number of arguments for this instruction doesn't match"
             )
@@ -35,16 +39,15 @@ class Instruction:
 
                 # Indexing the array with this value
                 index = int(arg_number[1])-1
-                if len(args) > index and index >= 0:  # and fidning if exists
+                if len(self.args) > index and index >= 0:  # and finding if exists
                     self.validate_attribute_values(
-                        self,  # Class is not initialized yet due to checking
                         type_attrib=argument.attrib["type"],
                         # The library returns None If text is ""
                         value_attrib="" if argument.text is None else argument.text,
-                        name=args[index]["name"]
+                        name=self.args[index]["name"]
                     )
-                    args[index]["type"] = argument.attrib["type"]
-                    args[index]["value"] = argument.text
+                    self.args[index]["type"] = argument.attrib["type"]
+                    self.args[index]["value"] = argument.text
                 else:
                     raise IPPCodeSyntaxError(
                         "Specified argument has wrong value"
@@ -53,8 +56,6 @@ class Instruction:
                 raise IPPCodeSyntaxError(
                     "Tag has to be names 'arg' with trailing number"
                 )
-
-        return
 
     def validate_attribute_values(self, type_attrib: str, value_attrib: str, name: str) -> None:
         regexType = {
@@ -85,90 +86,95 @@ class Instruction:
             if type_attrib in regexType:
                 arg_reg = re.compile(regexType[type_attrib])
 
-        if arg_reg and arg_reg.match(value_attrib):
-            return
-
-        raise IPPCodeSyntaxError("Argument is not specified correctly")
-        return
-
-    @classmethod
-    def create_mangled_name(cls, order: int) -> str:
-        return f"instruction_{cls.__name__.lower()}_{order}"
+        if not arg_reg or not arg_reg.match(value_attrib):
+            raise IPPCodeSyntaxError("Argument is not specified correctly")
 
     def run(self):
         pass
 
-# Interactions with frames, function calling #
+# Interactions with frames, function calling # Done
 
 
 class Move(Instruction):
-    handler_function = "null_handler"
+    handler_function = "move_variable"
     opcode = "move"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
+
+    def run(self):
+        return {
+            "from": {
+                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
+                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
+                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "value": None if self.args[1] == "var" else self.args[1]["value"]
+            },
+            "to": {
+                "scope": self.args[0]["value"].split("@")[0],
+                "name": self.args[0]["value"].split("@")[1],
+                "type": typing.Any,
+                "value": None
+            }
+        }
+        return var_move
 
 
 class CreateFrame(Instruction):
     handler_function = "create_temp_frame"
     opcode = "createframe"
-    args = [
-    ]
 
     def __init__(self, tag):
+        self.args = []
         super().__init__(tag=tag)
-        return
+
+    def run(self):
+        return {}
 
 
 class PushFrame(Instruction):
     handler_function = "push_temp_frame"
     opcode = "pushframe"
-    args = [
-    ]
 
     def __init__(self, tag):
+        self.args = []
         super().__init__(tag=tag)
-        return
 
 
 class PopFrame(Instruction):
     handler_function = "pop_temp_frame"
     opcode = "popframe"
-    args = [
-    ]
 
     def __init__(self, tag):
+        self.args = []
         super().__init__(tag=tag)
-        return
 
 
 class Defvar(Instruction):
     handler_function = "define_variable"
     opcode = "defvar"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
         return {
@@ -182,17 +188,16 @@ class Defvar(Instruction):
 class Call(Instruction):
     handler_function = "null_handler"
     opcode = "call"
-    args = [
-        {
-            "name": "label",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "label",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -202,12 +207,10 @@ class Call(Instruction):
 class Return(Instruction):
     handler_function = "null_handler"
     opcode = "return"
-    args = [
-    ]
 
     def __init__(self, tag):
+        self.args = []
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -219,17 +222,16 @@ class Return(Instruction):
 class Pushs(Instruction):
     handler_function = "null_handler"
     opcode = "pushs"
-    args = [
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -239,17 +241,16 @@ class Pushs(Instruction):
 class Pops(Instruction):
     handler_function = "null_handler"
     opcode = "pops"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -261,27 +262,26 @@ class Pops(Instruction):
 class Add(Instruction):
     handler_function = "null_handler"
     opcode = "add"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -291,27 +291,26 @@ class Add(Instruction):
 class Sub(Instruction):
     handler_function = "null_handler"
     opcode = "sub"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -321,27 +320,26 @@ class Sub(Instruction):
 class Mul(Instruction):
     handler_function = "null_handler"
     opcode = "mul"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -351,27 +349,26 @@ class Mul(Instruction):
 class IDiv(Instruction):
     handler_function = "null_handler"
     opcode = "idiv"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -379,27 +376,25 @@ class IDiv(Instruction):
 
 
 class Relation(Instruction):
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
-
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -412,7 +407,6 @@ class LT(Relation):
 
     def __init__(self, tag):
         super().__init__(tag=tag)
-        return
 
 
 class GT(Relation):
@@ -421,7 +415,6 @@ class GT(Relation):
 
     def __init__(self, tag):
         super().__init__(tag=tag)
-        return
 
 
 class EQ(Relation):
@@ -430,31 +423,28 @@ class EQ(Relation):
 
     def __init__(self, tag):
         super().__init__(tag=tag)
-        return
 
 
 class Logic(Instruction):
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
-
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -467,7 +457,6 @@ class AND(Logic):
 
     def __init__(self, tag):
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -480,7 +469,6 @@ class OR(Logic):
 
     def __init__(self, tag):
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -490,22 +478,21 @@ class OR(Logic):
 class NOT(Instruction):
     handler_function = "null_handler"
     opcode = "not"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -515,22 +502,21 @@ class NOT(Instruction):
 class Int2Char(Instruction):
     handler_function = "null_handler"
     opcode = "int2char"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -540,27 +526,26 @@ class Int2Char(Instruction):
 class Stri2Int(Instruction):
     handler_function = "null_handler"
     opcode = "stri2int"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -572,22 +557,21 @@ class Stri2Int(Instruction):
 class Read(Instruction):
     handler_function = "null_handler"
     opcode = "read"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "type",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "type",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -595,23 +579,26 @@ class Read(Instruction):
 
 
 class Write(Instruction):
-    handler_function = "null_handler"
+    handler_function = "write_variable"
     opcode = "write"
-    args = [
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
-
-        return
+        return {
+            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
+            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
+            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
+        }
 
 
 # Interaction with strings  #
@@ -619,27 +606,26 @@ class Write(Instruction):
 class Concat(Instruction):
     handler_function = "null_handler"
     opcode = "concat"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -649,22 +635,21 @@ class Concat(Instruction):
 class Strlen(Instruction):
     handler_function = "null_handler"
     opcode = "strlen"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -674,27 +659,26 @@ class Strlen(Instruction):
 class Getchar(Instruction):
     handler_function = "null_handler"
     opcode = "getchar"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -704,27 +688,26 @@ class Getchar(Instruction):
 class Setchar(Instruction):
     handler_function = "null_handler"
     opcode = "setchar"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -736,22 +719,21 @@ class Setchar(Instruction):
 class Type(Instruction):
     handler_function = "null_handler"
     opcode = "type"
-    args = [
-        {
-            "name": "var",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "var",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
 
@@ -763,154 +745,144 @@ class Type(Instruction):
 class Label(Instruction):
     handler_function = "null_handler"
     opcode = "label"
-    args = [
-        {
-            "name": "label",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "label",
+                "value": None,
+                "type": None
+            }
+        ]
+        self.start = None
+        self.end = None
         super().__init__(tag=tag)
-        return
 
-    def run(self):
-        return "It works"
+    def define(self, start: int, end: int) -> None:
+        self.start = start
+        self.end = end
 
 
 class Jump(Instruction):
     handler_function = "null_handler"
     opcode = "jump"
-    args = [
-        {
-            "name": "label",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "label",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
-
-    def run(self):
-
-        return
 
 
 class JumpIfEq(Instruction):
     handler_function = "null_handler"
     opcode = "jumpifeq"
-    args = [
-        {
-            "name": "label",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "label",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
-
-    def run(self):
-
-        return
 
 
 class JumpIfNeq(Instruction):
     handler_function = "null_handler"
     opcode = "jumpifneq"
-    args = [
-        {
-            "name": "label",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        },
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "label",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            },
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
-
-    def run(self):
-
-        return
 
 
 class Exit(Instruction):
-    handler_function = "null_handler"
+    handler_function = "exit_handle"
     opcode = "exit"
-    args = [
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
+        return {
+            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
+            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
+            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
+        }
 
-        return
 
-
-# Debug tools
+# Debug tools - Done
 
 class DPrint(Instruction):
-    handler_function = "null_handler"
+    handler_function = "dprint_handle"
     opcode = "dprint"
-    args = [
-        {
-            "name": "symb",
-            "value": None,
-            "type": None
-        }
-    ]
 
     def __init__(self, tag):
+        self.args = [
+            {
+                "name": "symb",
+                "value": None,
+                "type": None
+            }
+        ]
         super().__init__(tag=tag)
-        return
 
     def run(self):
-        print(self.args[0]["value"])
-        return
+        return {
+            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
+            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
+            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
+        }
 
 
 class Break(Instruction):
-    handler_function = "null_handler"
+    handler_function = "break_handle"
     opcode = "break"
-    args = [
-    ]
 
     def __init__(self, tag):
+        self.args = []
         super().__init__(tag=tag)
-        return
 
     def run(self):
-
-        return
+        return self.order
