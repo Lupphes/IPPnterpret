@@ -6,13 +6,14 @@ import typing
 
 
 class Memory(dict):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user_input, *args, **kwargs):
         super(Memory, self).__init__(*args, **kwargs)
         self.update({
             "GF": {
             },
             "LF": [],
-            "stack": []
+            "stack": [],
+            "stdin": user_input
         })
 
     def variable_exists(self, var: dict) -> bool:
@@ -50,36 +51,46 @@ class Memory(dict):
             result += part
         return result
 
-    def is_variable_initialized(self) -> None:
-        pass
+    def is_variable_initialized(self, var: dict) -> None:
+        if var["type"] is None and var["value"] is None:
+            sys.exit(56)
 
-    def are_arguments_valid(self, args: dict, two_symbs=True, init_check=True) -> dict:
-        self.variable_exists(args["result"])
+    def unpack_memory_values(self, args: dict, result_key="result", check_key=["first", "second"], init_check=True) -> dict:
+        if result_key is not None:
+            self.variable_exists(args[result_key])
 
-        if args["first"]["scope"] is not None:
-            self.variable_exists(args["first"])
-            args["first"]["value"] = self[args["first"]
-                                          ["scope"]][args["first"]["name"]]["value"] #TypeError: list indices must be integers or slices, not str
-            args["first"]["type"] = self[args["first"]
-                                         ["scope"]][args["first"]["name"]]["type"]
-            if init_check:
-                if args["first"]["type"] == None:
-                    sys.exit(56)
-
-        if two_symbs:
-            if args["second"]["scope"] is not None:
-                self.variable_exists(args["second"])
-                args["second"]["value"] = self[args["second"]
-                                               ["scope"]][args["second"]["name"]]["value"]
-                args["second"]["type"] = self[args["second"]
-                                              ["scope"]][args["second"]["name"]]["type"]
-        
-            if init_check:
-                if args["second"]["type"] == typing.Any:
-                    sys.exit(56)
+        for key in check_key:
+            if args[key]["scope"] is not None:
+                self.variable_exists(args[key])
+                if args[key]["scope"] == "LF":
+                    args[key]["value"] = self[args[key]
+                                              ["scope"]][-1][args[key]["name"]]["value"]
+                    args[key]["type"] = self[args[key]
+                                             ["scope"]][-1][args[key]["name"]]["type"]
+                else:
+                    args[key]["value"] = self[args[key]
+                                              ["scope"]][args[key]["name"]]["value"]
+                    args[key]["type"] = self[args[key]
+                                             ["scope"]][args[key]["name"]]["type"]
+                if init_check:
+                    self.is_variable_initialized(args[key])
+            elif args[key]["type"] is not None and args[key]["value"] is None:
+                args[key]["value"] = ""
+            elif args[key]["type"] == "int":
+                args[key]["value"] = int(args[key]["value"])
+            elif args[key]["type"] == "bool":
+                args[key]["value"] = True if args[key]["value"] == "true" else False
+            elif args[key]["type"] == "string":
+                args[key]["value"] = self.unpack_character(args[key]["value"])
 
 
         return args
+
+    def write_memory_values(self, var: dict, result_var: dict) -> None:
+        if var["result"]["scope"] == "LF":
+            self[var["result"]["scope"]][-1][var["result"]["name"]] = result_var
+        else:
+            self[var["result"]["scope"]][var["result"]["name"]] = result_var
 
     def null_handler(self, *args, **kwargs) -> None:
         pass
@@ -102,6 +113,12 @@ class Memory(dict):
     def define_variable(self, var: dict) -> None:
         self.scope_exists(var)
         if var["scope"] == "LF":
+            if self[var["scope"]][-1].get(var["name"]) is not None:
+                sys.exit(52)
+        elif self[var["scope"]].get(var["name"]) is not None:  # TF or GF
+            sys.exit(52)
+
+        if var["scope"] == "LF":
             self["LF"][-1][var["name"]] = {
                 "type": var["type"],
                 "value": var["value"]
@@ -112,30 +129,27 @@ class Memory(dict):
                 "value": var["value"]
             }
 
-    def move_variable(self, var: dict) -> None:
-        if var["from"]["scope"] is not None:
-            self.variable_exists(var["from"])  # variable
+    def move_variable(self, passed_args: dict) -> None:
+        args = self.unpack_memory_values(passed_args, "result", ["first"])
 
-        self.variable_exists(var["to"])
-        self[var["to"]["scope"]][var["to"]["name"]].update({
-            "type": var["from"]["type"],
-            "value": var["from"]["value"]
-        })
+        result = {
+            "type": passed_args["first"]["type"],
+            "value": passed_args["first"]["value"]
+        }
+
+        self.write_memory_values(var=args, result_var=result)
 
     def write_variable(self, var: dict) -> None:
-        if var["scope"] is not None:
-            self.variable_exists(var)  # variable
-            if var["scope"] == "LF":
-                output = self.unpack_character(
-                    self[var["scope"]][-1][var["name"]]["value"])
-                print(output, end='')
-            else:
-                output = self.unpack_character(
-                    self[var["scope"]][var["name"]]["value"])
-                print(output, end='')
-        else:
-            output = self.unpack_character(var["value"])
-            print(output, end='')
+        args = self.unpack_memory_values({"first": var}, None, ["first"])
+
+        if args["first"]["type"] == "bool":
+            args["first"]["value"] = "true" if args["first"]["value"] else "false"
+        elif args["first"]["type"] == "nil":
+            args["first"]["value"] = ""
+
+
+        output = args["first"]["value"]
+        print(output, end='')
 
     def dprint_handle(self, var: dict) -> None:
         if var["scope"] is not None:
@@ -150,6 +164,7 @@ class Memory(dict):
             print(var["value"], file=sys.stderr)
 
     def exit_handle(self, var: dict) -> None:
+        self.unpack_memory_values({"first": var}, None, ["first"])
         if var["scope"] is not None:
             self.variable_exists(var)  # variable
             if var["scope"] == "LF":
@@ -159,10 +174,13 @@ class Memory(dict):
         else:
             exit_value = var["value"]
 
-        if var["type"] == "int" and 0 <= int(exit_value) <= 49:
-            sys.exit(int(exit_value))
+        if var["type"] == "int":
+            if 0 <= int(exit_value) <= 49:
+                sys.exit(int(exit_value))
+            else:
+                sys.exit(57)
         else:
-            sys.exit(57)
+            sys.exit(53)
 
     def break_handle(self, order) -> None:
         print(
@@ -177,6 +195,7 @@ class Memory(dict):
     def pushs_hander(self, var: dict) -> None:
         if var["scope"] is not None:  # variable
             self.variable_exists(var)
+            self.is_variable_initialized(var)
             var["value"] = self[var["scope"]][var["name"]]["value"]
             var["type"] = self[var["scope"]][var["name"]]["type"]
 
@@ -184,206 +203,192 @@ class Memory(dict):
 
     def pops_hander(self, var: dict) -> None:
         self.variable_exists(var)
-        returned = self["stack"].pop()
+        if self["stack"]:
+            returned = self["stack"].pop()
+        else:
+            sys.exit(56)
         self[var["scope"]][var["name"]]["value"] = returned["value"]
         self[var["scope"]][var["name"]]["type"] = returned["type"]
 
     def artihmetic_operation(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
-            args=passed_args,
-            two_symbs=True,
-            init_check=True
+        var = self.unpack_memory_values(
+            args=passed_args
         )
         result = {}
         if var["first"]["type"] == var["second"]["type"] == "int":
             result["type"] = "int"
-            if var["opcode"] == "add":
-                var["result"]["value"] = int(
-                    var["first"]["value"]) + int(var["second"]["value"])
-            elif var["opcode"] == "sub":
-                var["result"]["value"] = int(
-                    var["first"]["value"]) - int(var["second"]["value"])
-            elif var["opcode"] == "mul":
-                var["result"]["value"] = int(
-                    var["first"]["value"]) * int(var["second"]["value"])
+            if passed_args["opcode"] == "add":
+                var["result"]["value"] = var["first"]["value"] + var["second"]["value"]
+            elif passed_args["opcode"] == "sub":
+                var["result"]["value"] = var["first"]["value"] - var["second"]["value"]
+            elif passed_args["opcode"] == "mul":
+                var["result"]["value"] = var["first"]["value"] * var["second"]["value"]
             else:
-                if int(var["second"]["value"]) != 0:
+                if var["second"]["value"] != 0:
                     var["result"]["value"] = int(
-                        int(var["first"]["value"]) / int(var["second"]["value"]))
+                        var["first"]["value"] / var["second"]["value"])
                 else:
                     sys.exit(57)
         else:
             sys.exit(53)
 
-        result["value"] = str(var["result"]["value"])
+        result["value"] = var["result"]["value"]
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def relational_operation(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
-            args=passed_args,
-            two_symbs=True,
-            init_check=True
+        var = self.unpack_memory_values(
+            args=passed_args
         )
 
         result = {}
         result["type"] = "bool"
-        if var["first"]["type"] or var["second"]["type"] == "nil":
-            if var["opcode"] == "eq":
+
+        if var["first"]["type"] == "nil" or var["second"]["type"] == "nil":
+            if passed_args["opcode"] == "eq":
                 var["result"]["value"] = var["first"]["value"] == var["second"]["value"]
             else:
                 sys.exit(53)
-        else:
-            if var["opcode"] == "lt":
+        elif var["first"]["type"] == var["second"]["type"]:
+            if passed_args["opcode"] == "lt":
                 var["result"]["value"] = var["first"]["value"] < var["second"]["value"]
-            elif var["opcode"] == "gt":
+            elif passed_args["opcode"] == "gt":
                 var["result"]["value"] = var["first"]["value"] > var["second"]["value"]
-            elif var["opcode"] == "eq":
+            elif passed_args["opcode"] == "eq":
                 var["result"]["value"] = var["first"]["value"] == var["second"]["value"]
-
-        var["result"]["value"] = "true" if var["result"] == True else "false"
+        else:
+            sys.exit(53)
 
         result["value"] = var["result"]["value"]
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
-
-        print(var)
+        self.write_memory_values(var=var, result_var=result)
 
     def logic_operation(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
-            args=passed_args,
-            two_symbs=True,
-            init_check=True
+        var = self.unpack_memory_values(
+            args=passed_args
         )
 
         result = {}
         result["type"] = "bool"
-        if var["first"]["type"] or var["second"]["type"] == "nil":
-            sys.exit(53)
+        if var["first"]["type"] == var["second"]["type"] == "bool":
+            if passed_args["opcode"] == "and":
+                result["value"] = var["first"]["value"] and var["second"]["value"]
+            else:  # or
+                result["value"] = var["first"]["value"] or var["second"]["value"]
         else:
-            if var["opcode"] == "AND":
-                result["value"] = "true" if var["first"]["value"] and var["second"]["value"] == True else "false"
-            elif var["opcode"] == "OR":
-                result["value"] = "true" if var["first"]["value"] or var["second"]["value"] == True else "false"
+            sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def not_operation(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
+        var = self.unpack_memory_values(
             args=passed_args,
-            two_symbs=False,
-            init_check=True
+            check_key=["first"]
         )
 
         result = {}
         result["type"] = "bool"
-        if var["first"]["type"] or var["second"]["type"] == "nil":
-            sys.exit(53)
+        if var["first"]["type"] == "bool":
+            result["value"] = not var["first"]["value"]
         else:
-            result["value"] = "true" if not var["first"]["value"] == True else "false"
+            sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def int_to_char_handle(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
+        var = self.unpack_memory_values(
             args=passed_args,
-            two_symbs=False,
-            init_check=True
+            check_key=["first"]
         )
 
         result = {}
         if var["first"]["type"] == "int":
             result["type"] = "string"
-            if 0 <= int(var["first"]["value"]) <= 0x10FFFF:
-                result["value"] = chr(int(var["first"]["value"]))
+            if 0 <= var["first"]["value"] <= 0x10FFFF:
+                result["value"] = chr(var["first"]["value"])
             else:
                 sys.exit(58)
         else:
             sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def string_to_int_handle(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
-            args=passed_args,
-            two_symbs=True,
-            init_check=True
+        var = self.unpack_memory_values(
+            args=passed_args
         )
 
         result = {}
         if var["first"]["type"] == "string" and var["second"]["type"] == "int":
             result["type"] = "int"
-            if 0 <= var["second"]["value"] <= len(var["first"]["value"]):
+            if 0 <= var["second"]["value"] < len(var["first"]["value"]):
                 result["value"] = ord(
-                    var["first"]["value"][int(var["first"]["second"])])
+                    var["first"]["value"][var["second"]["value"]])
             else:
                 sys.exit(58)
         else:
             sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def concat_handler(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
-            args=passed_args,
-            two_symbs=True,
-            init_check=True
+        var = self.unpack_memory_values(
+            args=passed_args
         )
         result = {}
         if var["first"]["type"] == var["second"]["type"] == "string":
             result["type"] = "string"
-            result["value"] = str(var["first"]["value"]) + str(var["second"]["value"])
+            result["value"] = var["first"]["value"] + var["second"]["value"]
         else:
             sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def strlen_handler(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
+        var = self.unpack_memory_values(
             args=passed_args,
-            two_symbs=False,
-            init_check=True
+            check_key=["first"]
         )
 
         result = {}
         if var["first"]["type"] == "string":
             result["type"] = "int"
-            result["value"] = len(var["first"]["value"])
+            if var["first"]["value"] is None:
+                result["value"] = 0
+            else:
+                result["value"] = len(var["first"]["value"])
         else:
             sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def getchar_handler(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
-            args=passed_args,
-            two_symbs=True,
-            init_check=True
+        var = self.unpack_memory_values(
+            args=passed_args
         )
 
         result = {}
         if var["first"]["type"] == "string" and var["second"]["type"] == "int":
             result["type"] = "string"
-            if 0 <= int(var["second"]["value"]) < len(var["first"]["value"]):
-                result["value"] = var["first"]["value"][int(var["second"]["value"])]
+            if 0 <= var["second"]["value"] < len(var["first"]["value"]):
+                result["value"] = var["first"]["value"][var["second"]["value"]]
             else:
                 sys.exit(58)
         else:
             sys.exit(53)
 
-        self[var["result"]["scope"]][var["result"]["name"]] = result
+        self.write_memory_values(var=var, result_var=result)
 
     def setchar_handler(self, passed_args: dict) -> None:
-        var = self.are_arguments_valid(
+        var = self.unpack_memory_values(
             args=passed_args,
-            two_symbs=True,
-            init_check=True
+            check_key=["first", "second", "result"]
         )
 
         result = {}
-        if var["result"]["type"] == var["first"]["type"] == "string" and var["first"]["type"] == "int":
+        if var["first"]["type"] == "int" and var["second"]["type"] == "string" and var["result"]["type"] == "string":
             result["type"] = "string"
-            if 0 <= var["first"]["value"] <= len(var["result"]["value"]):
+            if (0 <= var["first"]["value"] < len(var["result"]["value"])) and var["second"]["value"] != "":
                 result["value"] = var["result"]["value"][:var["first"]["value"]] + \
                     var["second"]["value"][0] + \
                     var["result"]["value"][var["first"]["value"]+1:]
@@ -392,8 +397,25 @@ class Memory(dict):
         else:
             sys.exit(53)
 
-    def type_hander(self, var: dict) -> None:
-        pass
+        self.write_memory_values(var=var, result_var=result)
 
-    def read_hander(self, var: dict) -> None:
-        pass
+    def type_hander(self, passed_args: dict) -> None:
+        var = self.unpack_memory_values(
+            args=passed_args,
+            result_key="result",
+            check_key=["first"],
+            init_check=False
+        )
+
+        result = {}
+        result["type"] = "string"
+
+        if var["first"]["type"] is None and var["first"]["value"] is None:
+            result["value"] = ""
+        else:
+            result["value"] = var["first"]["type"]
+
+        self.write_memory_values(var=var, result_var=result)
+
+    def read_hander(self, passed_args: dict) -> None:
+        sys.exit(-1)

@@ -505,9 +505,12 @@ function main($argv)
                 fclose($outputPythonFile);
             }
             else {
+                // $lalalaNewFile = fopen("$filePath.xml", "w") or die("Unable to open file!");
                 $outputFile = tmpfile();
                 $pathOutput = stream_get_meta_data($outputFile)['uri'];
                 exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
+                // fwrite($lalalaNewFile, file_get_contents($pathOutput));
+                // fclose($lalalaNewFile);
 
                 if ($arguments["isParseOnly"]) {
                     if ($returnedValue == $testedReturnValue && $returnedValue == 0) {

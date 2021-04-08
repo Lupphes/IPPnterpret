@@ -116,17 +116,17 @@ class Move(Instruction):
 
     def run(self):
         return {
-            "from": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1] == "var" else self.args[1]["value"]
-            },
-            "to": {
+            "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
+            },
+            "first": {
+                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
+                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             }
         }
         return var_move
@@ -180,7 +180,7 @@ class Defvar(Instruction):
         return {
             "scope": self.args[0]["value"].split("@")[0],
             "name": self.args[0]["value"].split("@")[1],
-            "type": typing.Any,
+            "type": None,
             "value": None
         }
 
@@ -237,7 +237,7 @@ class Pushs(Instruction):
         return {
             "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
             "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
             "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
         }
 
@@ -260,7 +260,7 @@ class Pops(Instruction):
         return {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             }
 
@@ -278,19 +278,19 @@ class Arithmetic(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -420,19 +420,19 @@ class Relational(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -453,7 +453,7 @@ class GT(Relational):
 
 
 class EQ(Relational):
-    opcode = "  "
+    opcode = "eq"
 
     def __init__(self, tag):
         super().__init__(tag=tag)
@@ -487,19 +487,19 @@ class Logic(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -544,13 +544,13 @@ class NOT(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             }
         }
@@ -581,13 +581,13 @@ class Int2Char(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             }
         }
@@ -623,19 +623,19 @@ class Stri2Int(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -668,13 +668,13 @@ class Read(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "name": self.args[1]["value"],
                 "value": None,
-                "type": typing.Any
+                "type": None
             }
         }
 
@@ -697,7 +697,7 @@ class Write(Instruction):
         return {
             "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
             "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
             "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
         }
 
@@ -734,19 +734,19 @@ class Concat(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -777,13 +777,13 @@ class Strlen(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             }
         }
@@ -819,19 +819,19 @@ class Getchar(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -867,19 +867,19 @@ class Setchar(Instruction):
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             },
             "second": {
                 "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
                 "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": typing.Any if self.args[2]["type"] == "var" else self.args[2]["type"],
+                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
                 "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
             }
         }
@@ -908,17 +908,16 @@ class Type(Instruction):
 
     def run(self):
         return {
-            "opcode": self.opcode,
             "result": {
                 "scope": self.args[0]["value"].split("@")[0],
                 "name": self.args[0]["value"].split("@")[1],
-                "type": typing.Any,
+                "type": None,
                 "value": None
             },
             "first": {
                 "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
                 "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": typing.Any if self.args[1]["type"] == "var" else self.args[1]["type"],
+                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
                 "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
             }
         }
@@ -1030,7 +1029,7 @@ class Exit(Instruction):
         return {
             "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
             "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
             "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
         }
 
@@ -1055,7 +1054,7 @@ class DPrint(Instruction):
         return {
             "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
             "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": typing.Any if self.args[0]["type"] == "var" else self.args[0]["type"],
+            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
             "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
         }
 

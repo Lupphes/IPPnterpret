@@ -8,7 +8,7 @@ import sys
 class Parser:
     """ Parses the whole source XML tree and provides the input which is needed for the interpret to run """
 
-    def __init__(self, source, input):
+    def __init__(self, source):
 
         try:
             parsed_tree = ET.parse(source)

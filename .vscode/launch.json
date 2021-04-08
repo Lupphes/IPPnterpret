@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "interpret.py",
             "console": "integratedTerminal",
-            "args": ["-s", "tests/int-only/git/arithmetic/correct.src", "-i", "./tests/int-only/wis/write_test.in"]
+            "args": ["-s", "./tests/both/git/move/move1.xml", "-i", "./tests/int-only/wis/write_test.in"]
         }
     ]
 }
