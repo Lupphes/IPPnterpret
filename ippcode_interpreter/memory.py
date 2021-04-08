@@ -13,7 +13,8 @@ class Memory(dict):
             },
             "LF": [],
             "stack": [],
-            "stdin": user_input
+            "stdin": user_input,
+            "input_set": False if user_input else True
         })
 
     def variable_exists(self, var: dict) -> bool:
@@ -192,14 +193,13 @@ class Memory(dict):
             file=sys.stderr
         )
 
-    def pushs_hander(self, var: dict) -> None:
-        if var["scope"] is not None:  # variable
-            self.variable_exists(var)
-            self.is_variable_initialized(var)
-            var["value"] = self[var["scope"]][var["name"]]["value"]
-            var["type"] = self[var["scope"]][var["name"]]["type"]
-
-        self["stack"].append(var)
+    def pushs_hander(self, passed_args: dict) -> None:
+        args = self.unpack_memory_values({"first": passed_args}, None, ["first"])
+        result = {
+            "value": args["first"]["value"],
+            "type": args["first"]["type"]
+        }
+        self["stack"].append(result)
 
     def pops_hander(self, var: dict) -> None:
         self.variable_exists(var)
@@ -418,4 +418,38 @@ class Memory(dict):
         self.write_memory_values(var=var, result_var=result)
 
     def read_hander(self, passed_args: dict) -> None:
-        sys.exit(-1)
+        var = self.unpack_memory_values(
+            args=passed_args,
+            result_key="result",
+            check_key=[]
+        )
+        result = {}
+        if self["input_set"]:
+            out = input()
+        else:
+            if not self["stdin"]:
+                result["value"] = "nil"
+                result["type"] = "nil"
+                self.write_memory_values(var=var, result_var=result)
+                return
+            else:
+                out = self["stdin"].pop()
+
+        if var["first"]["value"] == "int":
+            try:
+                result["value"] = int(out)
+                result["type"] = var["first"]["value"]
+            except ValueError:
+                result["value"] = "nil"
+                result["type"] = "nil"
+        elif var["first"]["value"] == "string":
+            result["value"] = out
+            result["type"] = var["first"]["value"]
+        else: # bool
+            if out.lower() == "true":
+                result["value"] = True
+            else:
+                result["value"] = False
+            result["type"] = var["first"]["value"]
+
+        self.write_memory_values(var=var, result_var=result)

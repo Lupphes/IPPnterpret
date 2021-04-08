@@ -672,9 +672,7 @@ class Read(Instruction):
                 "value": None
             },
             "first": {
-                "name": self.args[1]["value"],
-                "value": None,
-                "type": None
+                "value": self.args[1]["value"]
             }
         }
 

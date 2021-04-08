@@ -10,14 +10,7 @@
             "request": "launch",
             "program": "interpret.py",
             "console": "integratedTerminal",
-            "args": ["-s", "./tests/both/git/move/move1.xml", "-i", "./tests/int-only/wis/write_test.in"]
+            "args": ["-s", "./tests/both/git/read/read4.xml", "-i", "./tests/both/git/read/read4.in"]
         }
     ]
 }
-//./tests/parse-only/mine/vojtaKod.out
-//./tests/int-only/git/arithmetic/correct.src
-//tests/int-only/git/stack_tests/stack_eqs.src
-//./tests/int-only/git/xml_structure/wrong_tag2.src
-//./tests/int-only/wis/stack_test.src
-//./tests/int-only/git/32/missing_argument.src
-//.tests/int-only/git/32/missing_opcode.src
