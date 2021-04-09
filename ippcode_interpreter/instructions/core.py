@@ -138,7 +138,7 @@ class Instruction:
     def run(self):
         pass
 
-# Interactions with frames, function calling # Done
+# Interactions with frames, function calling
 
 class ArgumentParser(Instruction):
     def __init__(self, tag):
@@ -149,7 +149,7 @@ class ArgumentParser(Instruction):
 
 
 class Move(ArgumentParser):
-    handler_function = "move_variable"
+    handler_function = "move_handler"
     opcode = "move"
 
     def __init__(self, tag):
@@ -169,7 +169,7 @@ class Move(ArgumentParser):
 
 
 class CreateFrame(ArgumentParser):
-    handler_function = "create_temp_frame"
+    handler_function = "create_frame_handler"
     opcode = "createframe"
 
     def __init__(self, tag):
@@ -178,7 +178,7 @@ class CreateFrame(ArgumentParser):
 
 
 class PushFrame(Instruction):
-    handler_function = "push_temp_frame"
+    handler_function = "push_frame_handler"
     opcode = "pushframe"
 
     def __init__(self, tag):
@@ -187,7 +187,7 @@ class PushFrame(Instruction):
 
 
 class PopFrame(Instruction):
-    handler_function = "pop_temp_frame"
+    handler_function = "pop_frame_handler"
     opcode = "popframe"
 
     def __init__(self, tag):
@@ -196,7 +196,7 @@ class PopFrame(Instruction):
 
 
 class Defvar(ArgumentParser):
-    handler_function = "define_variable"
+    handler_function = "defvar_handler"
     opcode = "defvar"
 
     def __init__(self, tag):
@@ -234,10 +234,10 @@ class Return(Instruction):
         super().__init__(tag=tag)
 
 
-# Interactions with stack  # 
+# Interactions with stack
 
 class Pushs(ArgumentParser):
-    handler_function = "pushs_hander"
+    handler_function = "pushs_handler"
     opcode = "pushs"
 
     def __init__(self, tag):
@@ -252,7 +252,7 @@ class Pushs(ArgumentParser):
 
 
 class Pops(ArgumentParser):
-    handler_function = "pops_hander"
+    handler_function = "pops_handler"
     opcode = "pops"
 
     def __init__(self, tag):
@@ -265,11 +265,11 @@ class Pops(ArgumentParser):
         ]
         super().__init__(tag=tag)
 
-# Arithmetical, relations, bool functions  #
+# Arithmetical, relations, bool functions
 
 
 class Arithmetic(ArgumentParser):
-    handler_function = "artihmetic_operation"
+    handler_function = "artihmetic_handler"
 
     def __init__(self, tag):
         super().__init__(tag=tag)
@@ -372,7 +372,7 @@ class IDiv(Arithmetic):
 
 
 class Relational(ArgumentParser):
-    handler_function = "relational_operation"
+    handler_function = "relational_handler"
 
     def __init__(self, tag):
         self.args = [
@@ -417,7 +417,7 @@ class EQ(Relational):
 
 
 class Logic(ArgumentParser):
-    handler_function = "logic_operation"
+    handler_function = "logic_handler"
 
     def __init__(self, tag):
         self.args = [
@@ -455,7 +455,7 @@ class OR(Logic):
 
 
 class NOT(ArgumentParser):
-    handler_function = "not_operation"
+    handler_function = "not_handler"
     opcode = "not"
 
     def __init__(self, tag):
@@ -475,7 +475,7 @@ class NOT(ArgumentParser):
 
 
 class Int2Char(ArgumentParser):
-    handler_function = "int_to_char_handle"
+    handler_function = "int_to_char_handler"
     opcode = "int2char"
 
     def __init__(self, tag):
@@ -495,7 +495,7 @@ class Int2Char(ArgumentParser):
 
 
 class Stri2Int(ArgumentParser):
-    handler_function = "string_to_int_handle"
+    handler_function = "string_to_int_handler"
     opcode = "stri2int"
 
     def __init__(self, tag):
@@ -519,10 +519,10 @@ class Stri2Int(ArgumentParser):
         super().__init__(tag=tag)
 
 
-# Input/Output  #
+# Input/Output
 
 class Read(ArgumentParser):
-    handler_function = "read_hander"
+    handler_function = "read_handler"
     opcode = "read"
 
     def __init__(self, tag):
@@ -542,7 +542,7 @@ class Read(ArgumentParser):
 
 
 class Write(ArgumentParser):
-    handler_function = "write_variable"
+    handler_function = "write_handler"
     opcode = "write"
 
     def __init__(self, tag):
@@ -556,7 +556,7 @@ class Write(ArgumentParser):
         super().__init__(tag=tag)
 
 
-# Interaction with strings  #
+# Interaction with strings
 
 class Concat(ArgumentParser):
     handler_function = "concat_handler"
@@ -653,10 +653,10 @@ class Setchar(ArgumentParser):
         super().__init__(tag=tag)
 
 
-# Interaction with types  #
+# Interaction with types
 
 class Type(ArgumentParser):
-    handler_function = "type_hander"
+    handler_function = "type_handler"
     opcode = "type"
 
     def __init__(self, tag):
@@ -675,10 +675,9 @@ class Type(ArgumentParser):
         super().__init__(tag=tag)
 
 
-# Flow control  #
+# Flow control
 
 class Label(Instruction):
-    handler_function = "null_handler"
     opcode = "label"
 
     def __init__(self, tag):
@@ -699,7 +698,6 @@ class Label(Instruction):
 
 
 class Jump(Instruction):
-    handler_function = "null_handler"
     opcode = "jump"
 
     def __init__(self, tag):
@@ -714,7 +712,7 @@ class Jump(Instruction):
 
 
 class JumpIfEq(ArgumentParser):
-    handler_function = "jump_if_hander"
+    handler_function = "jump_if_handler"
     opcode = "jumpifeq"
 
     def __init__(self, tag):
@@ -739,7 +737,7 @@ class JumpIfEq(ArgumentParser):
 
 
 class JumpIfNeq(ArgumentParser):
-    handler_function = "jump_if_hander"
+    handler_function = "jump_if_handler"
     opcode = "jumpifneq"
 
     def __init__(self, tag):
@@ -764,7 +762,7 @@ class JumpIfNeq(ArgumentParser):
 
 
 class Exit(Instruction):
-    handler_function = "exit_handle"
+    handler_function = "exit_handler"
     opcode = "exit"
 
     def __init__(self, tag):
@@ -786,10 +784,10 @@ class Exit(Instruction):
         }
 
 
-# Debug tools - Done
+# Debug tools
 
 class DPrint(ArgumentParser):
-    handler_function = "dprint_handle"
+    handler_function = "dprint_handler"
     opcode = "dprint"
 
     def __init__(self, tag):
@@ -804,7 +802,7 @@ class DPrint(ArgumentParser):
 
 
 class Break(Instruction):
-    handler_function = "break_handle"
+    handler_function = "break_handler"
     opcode = "break"
 
     def __init__(self, tag):

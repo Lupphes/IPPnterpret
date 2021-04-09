@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python3.8
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -49,7 +49,7 @@ def argumentParse():
 
 
 def main(args):
-    """ Main program """
+    """ Launcher for IPPCode package """
     ipp.ippcode.IPPCode21(args.source, args.input)
 
 

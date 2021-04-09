@@ -97,22 +97,34 @@ class Memory(dict):
     def null_handler(self, *args, **kwargs) -> None:
         pass
 
-    def create_temp_frame(self, frame: dict) -> None:
+    # Interactions with frames, function calling
+
+    def move_handler(self, passed_args: dict) -> None:
+        args = self.unpack_memory_values(passed_args, "result", ["first"])
+
+        result = {
+            "type": passed_args["first"]["type"],
+            "value": passed_args["first"]["value"]
+        }
+
+        self.write_memory_values(var=args, result_var=result)
+
+    def create_frame_handler(self, frame: dict) -> None:
         self["TF"] = frame
 
-    def push_temp_frame(self, *args) -> None:
+    def push_frame_handler(self, *args) -> None:
         if "TF" in self:
             self["LF"].append(self.pop("TF"))
         else:
             raise FrameNotFoundError()
 
-    def pop_temp_frame(self, *args) -> None:
+    def pop_frame_handler(self, *args) -> None:
         if len(self["LF"]) > 0:
             self["TF"] = self["LF"].pop(-1)
         else:
             raise FrameNotFoundError()
 
-    def define_variable(self, var: dict) -> None:
+    def defvar_handler(self, var: dict) -> None:
         self.scope_exists(var)
         if var["scope"] == "LF":
             if self[var["scope"]][-1].get(var["name"]) is not None:
@@ -130,69 +142,9 @@ class Memory(dict):
                 "value": var["value"]
             }
 
-    def move_variable(self, passed_args: dict) -> None:
-        args = self.unpack_memory_values(passed_args, "result", ["first"])
+    # Interactions with stack
 
-        result = {
-            "type": passed_args["first"]["type"],
-            "value": passed_args["first"]["value"]
-        }
-
-        self.write_memory_values(var=args, result_var=result)
-
-    def write_variable(self, var: dict) -> None:
-        args = self.unpack_memory_values({"first": var}, None, ["first"])
-
-        if args["first"]["type"] == "bool":
-            args["first"]["value"] = "true" if args["first"]["value"] else "false"
-        elif args["first"]["type"] == "nil":
-            args["first"]["value"] = ""
-
-        output = args["first"]["value"]
-        print(output, end='')
-
-    def dprint_handle(self, var: dict) -> None:
-        if var["scope"] is not None:
-            self.variable_exists(var)  # variable
-            if var["scope"] == "LF":
-                print(self[var["scope"]][-1][var["name"]]
-                      ["value"], file=sys.stderr)
-            else:
-                print(self[var["scope"]][var["name"]]
-                      ["value"], file=sys.stderr)
-        else:
-            print(var["value"], file=sys.stderr)
-
-    def exit_handle(self, var: dict) -> None:
-        self.unpack_memory_values({"first": var}, None, ["first"])
-        if var["scope"] is not None:
-            self.variable_exists(var)  # variable
-            if var["scope"] == "LF":
-                exit_value = self[var["scope"]][-1][var["name"]]["value"]
-            else:
-                exit_value = self[var["scope"]][var["name"]]["value"]
-        else:
-            exit_value = var["value"]
-
-        if var["type"] == "int":
-            if 0 <= int(exit_value) <= 49:
-                sys.exit(int(exit_value))
-            else:
-                sys.exit(57)
-        else:
-            sys.exit(53)
-
-    def break_handle(self, order) -> None:
-        print(
-            f"Actual state of GF: {self['GF']}\n"
-            f"Actual state of LF: {self['LF']}\n"
-            f"Active frame in LF: {self['LF'][-1] if len(self['LF']) != 0 else 'LF is empty'}\n"
-            f"Actual state of TF: {self['TF'] if 'TF' in self else 'Not initialized'}\n"
-            f"Order: {order}",
-            file=sys.stderr
-        )
-
-    def pushs_hander(self, passed_args: dict) -> None:
+    def pushs_handler(self, passed_args: dict) -> None:
         args = self.unpack_memory_values(
             {"first": passed_args}, None, ["first"])
         result = {
@@ -201,7 +153,7 @@ class Memory(dict):
         }
         self["stack"].append(result)
 
-    def pops_hander(self, var: dict) -> None:
+    def pops_handler(self, var: dict) -> None:
         self.variable_exists(var)
         if self["stack"]:
             returned = self["stack"].pop()
@@ -210,7 +162,9 @@ class Memory(dict):
         self[var["scope"]][var["name"]]["value"] = returned["value"]
         self[var["scope"]][var["name"]]["type"] = returned["type"]
 
-    def artihmetic_operation(self, passed_args: dict) -> None:
+    # Arithmetical, relations, bool functions
+
+    def artihmetic_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args
         )
@@ -239,7 +193,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def relational_operation(self, passed_args: dict) -> None:
+    def relational_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args
         )
@@ -266,7 +220,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def logic_operation(self, passed_args: dict) -> None:
+    def logic_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args
         )
@@ -283,7 +237,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def not_operation(self, passed_args: dict) -> None:
+    def not_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args,
             check_key=["first"]
@@ -298,7 +252,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def int_to_char_handle(self, passed_args: dict) -> None:
+    def int_to_char_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args,
             check_key=["first"]
@@ -316,7 +270,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def string_to_int_handle(self, passed_args: dict) -> None:
+    def string_to_int_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args
         )
@@ -333,6 +287,63 @@ class Memory(dict):
             sys.exit(53)
 
         self.write_memory_values(var=var, result_var=result)
+
+    # Input/Output
+
+    def read_handler(self, passed_args: dict) -> None:
+        var = self.unpack_memory_values(
+            args=passed_args,
+            result_key="result",
+            check_key=[]
+        )
+        result = {}
+        if self["input_set"]:
+            out = input()
+            if out == "":
+                result["value"] = "nil"
+                result["type"] = "nil"
+                self.write_memory_values(var=var, result_var=result)
+                return
+        else:
+            if not self["stdin"]:
+                result["value"] = "nil"
+                result["type"] = "nil"
+                self.write_memory_values(var=var, result_var=result)
+                return
+            else:
+                out = self["stdin"].pop()
+
+        if var["first"]["value"] == "int":
+            try:
+                result["value"] = int(out)
+                result["type"] = var["first"]["value"]
+            except ValueError:
+                result["value"] = "nil"
+                result["type"] = "nil"
+        elif var["first"]["value"] == "string":
+            result["value"] = out
+            result["type"] = var["first"]["value"]
+        else:  # bool
+            if out.lower() == "true":
+                result["value"] = True
+            else:
+                result["value"] = False
+            result["type"] = var["first"]["value"]
+
+        self.write_memory_values(var=var, result_var=result)
+
+    def write_handler(self, var: dict) -> None:
+        args = self.unpack_memory_values({"first": var}, None, ["first"])
+
+        if args["first"]["type"] == "bool":
+            args["first"]["value"] = "true" if args["first"]["value"] else "false"
+        elif args["first"]["type"] == "nil":
+            args["first"]["value"] = ""
+
+        output = args["first"]["value"]
+        print(output, end='')
+
+    # Interaction with strings
 
     def concat_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
@@ -402,7 +413,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def type_hander(self, passed_args: dict) -> None:
+    def type_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args,
             result_key="result",
@@ -420,49 +431,7 @@ class Memory(dict):
 
         self.write_memory_values(var=var, result_var=result)
 
-    def read_hander(self, passed_args: dict) -> None:
-        var = self.unpack_memory_values(
-            args=passed_args,
-            result_key="result",
-            check_key=[]
-        )
-        result = {}
-        if self["input_set"]:
-            out = input()
-            if out == "":
-                result["value"] = "nil"
-                result["type"] = "nil"
-                self.write_memory_values(var=var, result_var=result)
-                return
-        else:
-            if not self["stdin"]:
-                result["value"] = "nil"
-                result["type"] = "nil"
-                self.write_memory_values(var=var, result_var=result)
-                return
-            else:
-                out = self["stdin"].pop()
-
-        if var["first"]["value"] == "int":
-            try:
-                result["value"] = int(out)
-                result["type"] = var["first"]["value"]
-            except ValueError:
-                result["value"] = "nil"
-                result["type"] = "nil"
-        elif var["first"]["value"] == "string":
-            result["value"] = out
-            result["type"] = var["first"]["value"]
-        else:  # bool
-            if out.lower() == "true":
-                result["value"] = True
-            else:
-                result["value"] = False
-            result["type"] = var["first"]["value"]
-
-        self.write_memory_values(var=var, result_var=result)
-
-    def jump_if_hander(self, passed_args: dict) -> None:
+    def jump_if_handler(self, passed_args: dict) -> None:
         var = self.unpack_memory_values(
             args=passed_args,
             result_key=None,
@@ -475,3 +444,46 @@ class Memory(dict):
             self["help_var2"] = None if var["second"]["value"] == "nil" else var["first"]["value"]
         else:
             sys.exit(53)
+
+    def exit_handler(self, var: dict) -> None:
+        self.unpack_memory_values({"first": var}, None, ["first"])
+        if var["scope"] is not None:
+            self.variable_exists(var)  # variable
+            if var["scope"] == "LF":
+                exit_value = self[var["scope"]][-1][var["name"]]["value"]
+            else:
+                exit_value = self[var["scope"]][var["name"]]["value"]
+        else:
+            exit_value = var["value"]
+
+        if var["type"] == "int":
+            if 0 <= int(exit_value) <= 49:
+                sys.exit(int(exit_value))
+            else:
+                sys.exit(57)
+        else:
+            sys.exit(53)
+
+    # Debug tools
+
+    def dprint_handler(self, var: dict) -> None:
+        if var["scope"] is not None:
+            self.variable_exists(var)  # variable
+            if var["scope"] == "LF":
+                print(self[var["scope"]][-1][var["name"]]
+                      ["value"], file=sys.stderr)
+            else:
+                print(self[var["scope"]][var["name"]]
+                      ["value"], file=sys.stderr)
+        else:
+            print(var["value"], file=sys.stderr)
+
+    def break_handler(self, order) -> None:
+        print(
+            f"Actual state of GF: {self['GF']}\n"
+            f"Actual state of LF: {self['LF']}\n"
+            f"Active frame in LF: {self['LF'][-1] if len(self['LF']) != 0 else 'LF is empty'}\n"
+            f"Actual state of TF: {self['TF'] if 'TF' in self else 'Not initialized'}\n"
+            f"Order: {order}",
+            file=sys.stderr
+        )
