@@ -14,7 +14,9 @@ class Memory(dict):
             "LF": [],
             "stack": [],
             "stdin": user_input,
-            "input_set": False if user_input else True
+            "input_set": False if user_input else True,
+            "help_var1": None,
+            "help_var2": None
         })
 
     def variable_exists(self, var: dict) -> bool:
@@ -84,7 +86,6 @@ class Memory(dict):
             elif args[key]["type"] == "string":
                 args[key]["value"] = self.unpack_character(args[key]["value"])
 
-
         return args
 
     def write_memory_values(self, var: dict, result_var: dict) -> None:
@@ -116,14 +117,13 @@ class Memory(dict):
         if var["scope"] == "LF":
             if self[var["scope"]][-1].get(var["name"]) is not None:
                 sys.exit(52)
+            else:
+                self["LF"][-1][var["name"]] = {
+                    "type": var["type"],
+                    "value": var["value"]
+                }
         elif self[var["scope"]].get(var["name"]) is not None:  # TF or GF
             sys.exit(52)
-
-        if var["scope"] == "LF":
-            self["LF"][-1][var["name"]] = {
-                "type": var["type"],
-                "value": var["value"]
-            }
         else:
             self[var["scope"]][var["name"]] = {
                 "type": var["type"],
@@ -147,7 +147,6 @@ class Memory(dict):
             args["first"]["value"] = "true" if args["first"]["value"] else "false"
         elif args["first"]["type"] == "nil":
             args["first"]["value"] = ""
-
 
         output = args["first"]["value"]
         print(output, end='')
@@ -194,7 +193,8 @@ class Memory(dict):
         )
 
     def pushs_hander(self, passed_args: dict) -> None:
-        args = self.unpack_memory_values({"first": passed_args}, None, ["first"])
+        args = self.unpack_memory_values(
+            {"first": passed_args}, None, ["first"])
         result = {
             "value": args["first"]["value"],
             "type": args["first"]["type"]
@@ -218,11 +218,14 @@ class Memory(dict):
         if var["first"]["type"] == var["second"]["type"] == "int":
             result["type"] = "int"
             if passed_args["opcode"] == "add":
-                var["result"]["value"] = var["first"]["value"] + var["second"]["value"]
+                var["result"]["value"] = var["first"]["value"] + \
+                    var["second"]["value"]
             elif passed_args["opcode"] == "sub":
-                var["result"]["value"] = var["first"]["value"] - var["second"]["value"]
+                var["result"]["value"] = var["first"]["value"] - \
+                    var["second"]["value"]
             elif passed_args["opcode"] == "mul":
-                var["result"]["value"] = var["first"]["value"] * var["second"]["value"]
+                var["result"]["value"] = var["first"]["value"] * \
+                    var["second"]["value"]
             else:
                 if var["second"]["value"] != 0:
                     var["result"]["value"] = int(
@@ -426,6 +429,11 @@ class Memory(dict):
         result = {}
         if self["input_set"]:
             out = input()
+            if out == "":
+                result["value"] = "nil"
+                result["type"] = "nil"
+                self.write_memory_values(var=var, result_var=result)
+                return
         else:
             if not self["stdin"]:
                 result["value"] = "nil"
@@ -445,7 +453,7 @@ class Memory(dict):
         elif var["first"]["value"] == "string":
             result["value"] = out
             result["type"] = var["first"]["value"]
-        else: # bool
+        else:  # bool
             if out.lower() == "true":
                 result["value"] = True
             else:
@@ -453,3 +461,17 @@ class Memory(dict):
             result["type"] = var["first"]["value"]
 
         self.write_memory_values(var=var, result_var=result)
+
+    def jump_if_hander(self, passed_args: dict) -> None:
+        var = self.unpack_memory_values(
+            args=passed_args,
+            result_key=None,
+        )
+        if var["first"]["type"] == var["second"]["type"]:
+            self["help_var1"] = var["first"]["value"]
+            self["help_var2"] = var["second"]["value"]
+        elif var["first"]["type"] == "nil" or var["second"]["type"] == "nil":
+            self["help_var1"] = None if var["first"]["value"] == "nil" else var["first"]["value"]
+            self["help_var2"] = None if var["second"]["value"] == "nil" else var["first"]["value"]
+        else:
+            sys.exit(53)

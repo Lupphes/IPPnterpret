@@ -89,13 +89,66 @@ class Instruction:
         if not arg_reg or not arg_reg.match(value_attrib):
             raise IPPCodeSyntaxError("Argument is not specified correctly")
 
+
+        pass
+
+    def unpack_arguments(self, passed_arguments) -> dict:
+        length = len(passed_arguments)
+        result = {"opcode": self.opcode}
+
+        if length == 0:
+            return result
+
+        for index, arg in enumerate(passed_arguments):
+            if index == 0:
+                index_name = "result"
+            elif index == 1:
+                index_name = "first"
+            elif index == 2:
+                index_name = "second"
+
+            if arg["name"] == "var":
+                result[index_name] = {
+                    "scope": arg["value"].split("@")[0],
+                    "name": arg["value"].split("@")[1],
+                    "type": None,
+                    "value": None
+                }
+            elif arg["name"] == "symb":
+                result[index_name] = {
+                    "scope": arg["value"].split("@")[0] if arg["type"] == "var" else None,
+                    "name": arg["value"].split("@")[1] if arg["type"] == "var" else None,
+                    "type": None if arg["type"] == "var" else arg["type"],
+                    "value": None if arg["type"] == "var" else arg["value"]
+                }
+            elif arg["name"] == "label":
+                continue
+            elif arg["name"] == "type":
+                result["first"] = {
+                    "value": arg["value"]
+                }
+            else:
+                sys.exit(99)
+
+        if length == 1:
+            return result[index_name]
+
+        return result
+
     def run(self):
         pass
 
 # Interactions with frames, function calling # Done
 
+class ArgumentParser(Instruction):
+    def __init__(self, tag):
+        super().__init__(tag=tag)
 
-class Move(Instruction):
+    def run(self):
+        return self.unpack_arguments(self.args)
+
+
+class Move(ArgumentParser):
     handler_function = "move_variable"
     opcode = "move"
 
@@ -114,34 +167,14 @@ class Move(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            }
-        }
-        return var_move
 
-
-class CreateFrame(Instruction):
+class CreateFrame(ArgumentParser):
     handler_function = "create_temp_frame"
     opcode = "createframe"
 
     def __init__(self, tag):
         self.args = []
         super().__init__(tag=tag)
-
-    def run(self):
-        return {}
 
 
 class PushFrame(Instruction):
@@ -162,7 +195,7 @@ class PopFrame(Instruction):
         super().__init__(tag=tag)
 
 
-class Defvar(Instruction):
+class Defvar(ArgumentParser):
     handler_function = "define_variable"
     opcode = "defvar"
 
@@ -175,14 +208,6 @@ class Defvar(Instruction):
             }
         ]
         super().__init__(tag=tag)
-
-    def run(self):
-        return {
-            "scope": self.args[0]["value"].split("@")[0],
-            "name": self.args[0]["value"].split("@")[1],
-            "type": None,
-            "value": None
-        }
 
 
 class Call(Instruction):
@@ -199,10 +224,6 @@ class Call(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-
-        return
-
 
 class Return(Instruction):
     handler_function = "null_handler"
@@ -212,14 +233,10 @@ class Return(Instruction):
         self.args = []
         super().__init__(tag=tag)
 
-    def run(self):
 
-        return
+# Interactions with stack  # 
 
-
-# Interactions with stack  # # Done
-
-class Pushs(Instruction):
+class Pushs(ArgumentParser):
     handler_function = "pushs_hander"
     opcode = "pushs"
 
@@ -233,16 +250,8 @@ class Pushs(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
-            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
-            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
-        }
 
-
-class Pops(Instruction):
+class Pops(ArgumentParser):
     handler_function = "pops_hander"
     opcode = "pops"
 
@@ -256,44 +265,14 @@ class Pops(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            }
-
 # Arithmetical, relations, bool functions  #
 
 
-class Arithmetic(Instruction):
+class Arithmetic(ArgumentParser):
     handler_function = "artihmetic_operation"
+
     def __init__(self, tag):
         super().__init__(tag=tag)
-
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
 
 
 class Add(Arithmetic):
@@ -392,8 +371,9 @@ class IDiv(Arithmetic):
         super().__init__(tag=tag)
 
 
-class Relational(Instruction):
+class Relational(ArgumentParser):
     handler_function = "relational_operation"
+
     def __init__(self, tag):
         self.args = [
             {
@@ -413,29 +393,6 @@ class Relational(Instruction):
             }
         ]
         super().__init__(tag=tag)
-
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
 
 
 class LT(Relational):
@@ -459,8 +416,9 @@ class EQ(Relational):
         super().__init__(tag=tag)
 
 
-class Logic(Instruction):
+class Logic(ArgumentParser):
     handler_function = "logic_operation"
+
     def __init__(self, tag):
         self.args = [
             {
@@ -481,29 +439,6 @@ class Logic(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
-
 
 class AND(Logic):
     opcode = "and"
@@ -519,7 +454,7 @@ class OR(Logic):
         super().__init__(tag=tag)
 
 
-class NOT(Instruction):
+class NOT(ArgumentParser):
     handler_function = "not_operation"
     opcode = "not"
 
@@ -538,25 +473,8 @@ class NOT(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            }
-        }
 
-
-class Int2Char(Instruction):
+class Int2Char(ArgumentParser):
     handler_function = "int_to_char_handle"
     opcode = "int2char"
 
@@ -575,25 +493,8 @@ class Int2Char(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            }
-        }
 
-
-class Stri2Int(Instruction):
+class Stri2Int(ArgumentParser):
     handler_function = "string_to_int_handle"
     opcode = "stri2int"
 
@@ -617,33 +518,10 @@ class Stri2Int(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
-
 
 # Input/Output  #
 
-class Read(Instruction):
+class Read(ArgumentParser):
     handler_function = "read_hander"
     opcode = "read"
 
@@ -662,22 +540,8 @@ class Read(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "value": self.args[1]["value"]
-            }
-        }
 
-
-class Write(Instruction):
+class Write(ArgumentParser):
     handler_function = "write_variable"
     opcode = "write"
 
@@ -691,18 +555,10 @@ class Write(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
-            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
-            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
-        }
-
 
 # Interaction with strings  #
 
-class Concat(Instruction):
+class Concat(ArgumentParser):
     handler_function = "concat_handler"
     opcode = "concat"
 
@@ -726,31 +582,8 @@ class Concat(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
 
-
-class Strlen(Instruction):
+class Strlen(ArgumentParser):
     handler_function = "strlen_handler"
     opcode = "strlen"
 
@@ -769,25 +602,8 @@ class Strlen(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            }
-        }
 
-
-class Getchar(Instruction):
+class Getchar(ArgumentParser):
     handler_function = "getchar_handler"
     opcode = "getchar"
 
@@ -811,31 +627,8 @@ class Getchar(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
 
-
-class Setchar(Instruction):
+class Setchar(ArgumentParser):
     handler_function = "setchar_handler"
     opcode = "setchar"
 
@@ -859,33 +652,10 @@ class Setchar(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "opcode": self.opcode,
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            },
-            "second": {
-                "scope": self.args[2]["value"].split("@")[0] if self.args[2]["type"] == "var" else None,
-                "name": self.args[2]["value"].split("@")[1] if self.args[2]["type"] == "var" else None,
-                "type": None if self.args[2]["type"] == "var" else self.args[2]["type"],
-                "value": None if self.args[2]["type"] == "var" else self.args[2]["value"]
-            }
-        }
-
 
 # Interaction with types  #
 
-class Type(Instruction):
+class Type(ArgumentParser):
     handler_function = "type_hander"
     opcode = "type"
 
@@ -903,22 +673,6 @@ class Type(Instruction):
             }
         ]
         super().__init__(tag=tag)
-
-    def run(self):
-        return {
-            "result": {
-                "scope": self.args[0]["value"].split("@")[0],
-                "name": self.args[0]["value"].split("@")[1],
-                "type": None,
-                "value": None
-            },
-            "first": {
-                "scope": self.args[1]["value"].split("@")[0] if self.args[1]["type"] == "var" else None,
-                "name": self.args[1]["value"].split("@")[1] if self.args[1]["type"] == "var" else None,
-                "type": None if self.args[1]["type"] == "var" else self.args[1]["type"],
-                "value": None if self.args[1]["type"] == "var" else self.args[1]["value"]
-            }
-        }
 
 
 # Flow control  #
@@ -959,8 +713,8 @@ class Jump(Instruction):
         super().__init__(tag=tag)
 
 
-class JumpIfEq(Instruction):
-    handler_function = "null_handler"
+class JumpIfEq(ArgumentParser):
+    handler_function = "jump_if_hander"
     opcode = "jumpifeq"
 
     def __init__(self, tag):
@@ -984,8 +738,8 @@ class JumpIfEq(Instruction):
         super().__init__(tag=tag)
 
 
-class JumpIfNeq(Instruction):
-    handler_function = "null_handler"
+class JumpIfNeq(ArgumentParser):
+    handler_function = "jump_if_hander"
     opcode = "jumpifneq"
 
     def __init__(self, tag):
@@ -1034,7 +788,7 @@ class Exit(Instruction):
 
 # Debug tools - Done
 
-class DPrint(Instruction):
+class DPrint(ArgumentParser):
     handler_function = "dprint_handle"
     opcode = "dprint"
 
@@ -1047,14 +801,6 @@ class DPrint(Instruction):
             }
         ]
         super().__init__(tag=tag)
-
-    def run(self):
-        return {
-            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
-            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
-            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
-        }
 
 
 class Break(Instruction):
