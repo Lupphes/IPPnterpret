@@ -7,6 +7,7 @@ import sys
 
 @functools.lru_cache()
 def wrap_with_logging(callable: typing.Callable = None) -> typing.Callable:
+    """ Wraps error logs with stack trace """
     def decorator(callable: typing.Callable) -> typing.Callable:
         @functools.wraps(callable)
         def wrapper(*args, **kwargs):

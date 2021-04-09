@@ -12,9 +12,11 @@ __all__ = [
 
     "XMLParsingError", "InvalidXMLSyntax", "IPPCodeSyntaxError"
 
-    "FileNotFound", "FileRestricted",
+    "FileError", "FileNotFoundError", "FileRestrictedError",
 
-    "FrameError", "FrameNotFoundError",
+    "SemanticError", "FrameNotFoundError", "LabelDoesNotExists", "MissingValueOnStackError",
+    "UndefinedVariableError", "VariableRedefinitionError", "VariableIsNotInitializedError",
+    "VariableTypeError", "DivisionByZeroError", "IndexOutOfRangeError", "OperandError",
 
     "IPPRuntimeError"
 ]
@@ -53,35 +55,6 @@ class IPPCodeError(Exception):
             f"Encountered an error while runtime: {self.__class__.__name__}, {self.error_msg}")
 
 
-class FrameError(IPPCodeError):
-    error_msg = "Encountered an exception while trying to interect with a frame"
-    exit_code = ErrorCodes.ERR_INTERNAL
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-
-class FrameNotFoundError(FrameError):
-    error_msg = "Selected frame cannot be found in the specified scope"
-    exit_code = ErrorCodes.ERR_RUNNING_UNKNOWN_FRAME
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-
-class IPPRuntimeError(IPPCodeError):
-    error_msg = "IPPCode21 interpreter encoutered an exception while running"
-    exit_code = ErrorCodes.ERR_INTERNAL
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-    def log_exception(self):
-        tb = traceback.format_tb(sys.exc_info()[2])
-        tb_str = "".join(frame for frame in tb)
-        print(f"{tb_str}\n IPPCode21 interpreter encoutered an exception while running; {self.__class__.__name__} => {self.error_msg}")
-
-
 class ArgumentsNotValid(IPPCodeError):
     error_msg = "Specified arguments are unrecognized"
     exit_code = ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION
@@ -93,30 +66,6 @@ class ArgumentsNotValid(IPPCodeError):
 class ArgumentsInvalidCombination(ArgumentsNotValid):
     error_msg = "Specified combination of arguments is not valid"
     exit_code = ErrorCodes.ERR_ARGUMENT_PARSE_COMBINATION
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-
-class FileError(IPPCodeError):
-    error_msg = "Encountered an exception while trying to interect with a specified file"
-    exit_code = ErrorCodes.ERR_INTERNAL
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-
-class FileNotFound(FileError):
-    error_msg = "Can't open file: No such file or directory"
-    exit_code = ErrorCodes.ERR_OPENING_FILES
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-
-class FileRestricted(FileError):
-    error_msg = "Can't write into file: Permisson denied"
-    exit_code = ErrorCodes.ERR_WRITING_FILES
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -144,3 +93,128 @@ class IPPCodeSyntaxError(InvalidXMLSyntax):
 
     def __init__(self, *args):
         super().__init__(*args)
+
+
+class FileError(IPPCodeError):
+    error_msg = "Encountered an exception while trying to interect with a specified file"
+    exit_code = ErrorCodes.ERR_INTERNAL
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class FileNotFoundError(FileError):
+    error_msg = "Can't open file: No such file or directory"
+    exit_code = ErrorCodes.ERR_OPENING_FILES
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class FileRestrictedError(FileError):
+    error_msg = "Can't write into file: Permisson denied"
+    exit_code = ErrorCodes.ERR_WRITING_FILES
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class SemanticError(IPPCodeError):
+    error_msg = "The code has unknown semantic error"
+    exit_code = ErrorCodes.ERR_INTERNAL
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class FrameNotFoundError(SemanticError):
+    error_msg = "Selected frame cannot be found in the specified scope"
+    exit_code = ErrorCodes.ERR_RUNNING_UNKNOWN_FRAME
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class LabelDoesNotExists(SemanticError):
+    error_msg = "Can't jump or call to specified label"
+    exit_code = ErrorCodes.ERR_SEMANTIC
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class MissingValueOnStackError(SemanticError):
+    error_msg = "The interpret tries to get undefined value on stack"
+    exit_code = ErrorCodes.ERR_RUNNING_MISSING_VAL
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class UndefinedVariableError(SemanticError):
+    error_msg = "The variable is not defined in selected scope"
+    exit_code = ErrorCodes.ERR_RUNNING_UNKNOWN_VAR
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class VariableRedefinitionError(SemanticError):
+    error_msg = "The specified variable is already defined"
+    exit_code = ErrorCodes.ERR_SEMANTIC
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class VariableIsNotInitializedError(SemanticError):
+    error_msg = "The selected variable is not initialized to execute this action"
+    exit_code = ErrorCodes.ERR_RUNNING_MISSING_VAL
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class VariableTypeError(SemanticError):
+    error_msg = "The specified type is not compatible with this instruction"
+    exit_code = ErrorCodes.ERR_RUNNING_TYPE
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class DivisionByZeroError(SemanticError):
+    error_msg = "Found division by zero"
+    exit_code = ErrorCodes.ERR_RUNNING_OPERAND
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class OperandError(SemanticError):
+    error_msg = "The specified operand is not correct in this context"
+    exit_code = ErrorCodes.ERR_RUNNING_OPERAND
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class IndexOutOfRangeError(SemanticError):
+    error_msg = "The specied index is out of range"
+    exit_code = ErrorCodes.ERR_RUNNING_STRING
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class IPPRuntimeError(IPPCodeError):
+    error_msg = "IPPCode21 interpreter encoutered an exception while running"
+    exit_code = ErrorCodes.ERR_INTERNAL
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    def log_exception(self):
+        tb = traceback.format_tb(sys.exc_info()[2])
+        tb_str = "".join(frame for frame in tb)
+        print(f"{tb_str}\n IPPCode21 interpreter encoutered an exception while running; {self.__class__.__name__} => {self.error_msg}")

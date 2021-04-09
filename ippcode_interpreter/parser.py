@@ -19,7 +19,7 @@ class Parser:
 
         # Program tag validation
         program_tag = parsed_tree.getroot()
-        self.validate_header(program_tag)
+        self.validate_header(program_tag=program_tag)
 
         sorted_tree = sorted(program_tag, key=self.validate_order)
 
@@ -54,22 +54,28 @@ class Parser:
                 if new_label in self.mangled_instructions["labels"]:
                     sys.exit(52)
                 else:
-                    instruction.define(start=index, end=self.program_length - 1)
+                    instruction.define(
+                        start=index,
+                        end=self.program_length - 1
+                    )
                     if previous_label is not None:
                         start = self.mangled_instructions["labels"][previous_label].start
                         end = index - 1
                         self.mangled_instructions["labels"][previous_label].define(
-                            start=start, 
+                            start=start,
                             end=end
                         )
 
                     self.mangled_instructions["labels"][new_label] = instruction
                     previous_label = new_label
-                    
-                    self.mangled_instructions["instructions"].append(instruction)
+
+                    self.mangled_instructions["instructions"].append(
+                        instruction
+                    )
             else:
                 self.mangled_instructions["instructions"].append(
-                    instruction)
+                    instruction
+                )
 
     def get_label_from_instruction(self, label_class) -> dict:
         return {
@@ -87,7 +93,8 @@ class Parser:
         )
         if not (tag.attrib["order"].isdigit() and int(tag.attrib["order"]) > 0):
             raise IPPCodeSyntaxError(
-                "Order attribute needs to be a whole number bigger that 0")
+                "Order attribute needs to be a whole number bigger that 0"
+            )
 
         return int(tag.attrib["order"])
 
@@ -132,5 +139,6 @@ class Parser:
                             break
                     if not successful:
                         raise IPPCodeSyntaxError(
-                            "Specified argument is not valid; Probably header")
+                            "Specified argument is not valid; Probably header"
+                        )
         return

@@ -89,7 +89,6 @@ class Instruction:
         if not arg_reg or not arg_reg.match(value_attrib):
             raise IPPCodeSyntaxError("Argument is not specified correctly")
 
-
         pass
 
     def unpack_arguments(self, passed_arguments) -> dict:
@@ -123,22 +122,19 @@ class Instruction:
                 }
             elif arg["name"] == "label":
                 continue
-            elif arg["name"] == "type":
+            else:  # type
                 result["first"] = {
                     "value": arg["value"]
                 }
-            else:
-                sys.exit(99)
-
         if length == 1:
             return result[index_name]
-
         return result
 
     def run(self):
         pass
 
 # Interactions with frames, function calling
+
 
 class ArgumentParser(Instruction):
     def __init__(self, tag):
@@ -211,7 +207,6 @@ class Defvar(ArgumentParser):
 
 
 class Call(Instruction):
-    handler_function = "null_handler"
     opcode = "call"
 
     def __init__(self, tag):
@@ -226,7 +221,6 @@ class Call(Instruction):
 
 
 class Return(Instruction):
-    handler_function = "null_handler"
     opcode = "return"
 
     def __init__(self, tag):

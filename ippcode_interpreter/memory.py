@@ -1,8 +1,8 @@
-from .exception import FrameNotFoundError
-from .utils import wrap_with_logging
-import sys
-import re
 import typing
+import re
+import sys
+from .utils import wrap_with_logging
+from .exception import FrameNotFoundError, UndefinedVariableError, VariableRedefinitionError, VariableIsNotInitializedError, VariableTypeError, IndexOutOfRangeError, DivisionByZeroError, OperandError, MissingValueOnStackError
 
 
 class Memory(dict):
@@ -23,9 +23,9 @@ class Memory(dict):
         self.scope_exists(var)
         if var["scope"] == "LF":
             if self[var["scope"]][-1].get(var["name"]) is None:
-                sys.exit(54)
+                raise UndefinedVariableError()
         elif self[var["scope"]].get(var["name"]) is None:  # TF or GF
-            sys.exit(54)
+            raise UndefinedVariableError()
 
     def scope_exists(self, var: dict) -> bool:
         if var["scope"] == "TF" and self.get("TF") is None:
@@ -56,7 +56,7 @@ class Memory(dict):
 
     def is_variable_initialized(self, var: dict) -> None:
         if var["type"] is None and var["value"] is None:
-            sys.exit(56)
+            raise VariableIsNotInitializedError()
 
     def unpack_memory_values(self, args: dict, result_key="result", check_key=["first", "second"], init_check=True) -> dict:
         if result_key is not None:
@@ -128,14 +128,14 @@ class Memory(dict):
         self.scope_exists(var)
         if var["scope"] == "LF":
             if self[var["scope"]][-1].get(var["name"]) is not None:
-                sys.exit(52)
+                raise VariableRedefinitionError()
             else:
                 self["LF"][-1][var["name"]] = {
                     "type": var["type"],
                     "value": var["value"]
                 }
         elif self[var["scope"]].get(var["name"]) is not None:  # TF or GF
-            sys.exit(52)
+            raise VariableRedefinitionError()
         else:
             self[var["scope"]][var["name"]] = {
                 "type": var["type"],
@@ -158,7 +158,7 @@ class Memory(dict):
         if self["stack"]:
             returned = self["stack"].pop()
         else:
-            sys.exit(56)
+            raise MissingValueOnStackError()
         self[var["scope"]][var["name"]]["value"] = returned["value"]
         self[var["scope"]][var["name"]]["type"] = returned["type"]
 
@@ -185,9 +185,9 @@ class Memory(dict):
                     var["result"]["value"] = int(
                         var["first"]["value"] / var["second"]["value"])
                 else:
-                    sys.exit(57)
+                    raise DivisionByZeroError()
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         result["value"] = var["result"]["value"]
 
@@ -205,7 +205,7 @@ class Memory(dict):
             if passed_args["opcode"] == "eq":
                 var["result"]["value"] = var["first"]["value"] == var["second"]["value"]
             else:
-                sys.exit(53)
+                raise VariableTypeError()
         elif var["first"]["type"] == var["second"]["type"]:
             if passed_args["opcode"] == "lt":
                 var["result"]["value"] = var["first"]["value"] < var["second"]["value"]
@@ -214,7 +214,7 @@ class Memory(dict):
             elif passed_args["opcode"] == "eq":
                 var["result"]["value"] = var["first"]["value"] == var["second"]["value"]
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         result["value"] = var["result"]["value"]
 
@@ -233,7 +233,7 @@ class Memory(dict):
             else:  # or
                 result["value"] = var["first"]["value"] or var["second"]["value"]
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -248,7 +248,7 @@ class Memory(dict):
         if var["first"]["type"] == "bool":
             result["value"] = not var["first"]["value"]
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -264,9 +264,9 @@ class Memory(dict):
             if 0 <= var["first"]["value"] <= 0x10FFFF:
                 result["value"] = chr(var["first"]["value"])
             else:
-                sys.exit(58)
+                raise IndexOutOfRangeError()
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -282,9 +282,9 @@ class Memory(dict):
                 result["value"] = ord(
                     var["first"]["value"][var["second"]["value"]])
             else:
-                sys.exit(58)
+                raise IndexOutOfRangeError()
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -354,7 +354,7 @@ class Memory(dict):
             result["type"] = "string"
             result["value"] = var["first"]["value"] + var["second"]["value"]
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -372,7 +372,7 @@ class Memory(dict):
             else:
                 result["value"] = len(var["first"]["value"])
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -387,9 +387,9 @@ class Memory(dict):
             if 0 <= var["second"]["value"] < len(var["first"]["value"]):
                 result["value"] = var["first"]["value"][var["second"]["value"]]
             else:
-                sys.exit(58)
+                raise IndexOutOfRangeError()
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -407,9 +407,9 @@ class Memory(dict):
                     var["second"]["value"][0] + \
                     var["result"]["value"][var["first"]["value"]+1:]
             else:
-                sys.exit(58)
+                raise IndexOutOfRangeError()
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
         self.write_memory_values(var=var, result_var=result)
 
@@ -443,7 +443,7 @@ class Memory(dict):
             self["help_var1"] = None if var["first"]["value"] == "nil" else var["first"]["value"]
             self["help_var2"] = None if var["second"]["value"] == "nil" else var["first"]["value"]
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
     def exit_handler(self, var: dict) -> None:
         self.unpack_memory_values({"first": var}, None, ["first"])
@@ -460,9 +460,9 @@ class Memory(dict):
             if 0 <= int(exit_value) <= 49:
                 sys.exit(int(exit_value))
             else:
-                sys.exit(57)
+                raise OperandError()
         else:
-            sys.exit(53)
+            raise VariableTypeError()
 
     # Debug tools
 

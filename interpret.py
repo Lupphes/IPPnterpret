@@ -41,10 +41,10 @@ def argumentParse():
         sys.exit(ipp.exception.ErrorCodes.SUCCESS)
 
     if args.input is not None and not args.input.is_file():
-        raise ipp.exception.FileNotFound()
+        raise ipp.exception.FileNotFoundError()
 
     if args.source is not None and not args.source.is_file():
-        raise ipp.exception.FileNotFound()
+        raise ipp.exception.FileNotFoundError()
     return args
 
 
