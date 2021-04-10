@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "interpret.py",
             "console": "integratedTerminal",
-            "args": ["-s", "./tests/both/git/functionCalls/functions7.xml", "-i", "./tests/both/git/read/read4.in"]
+            "args": ["-s", "./tests/both/git/jumpifeq/jumpifeq.xml", "-i", "./tests/both/git/read/read4.in"]
         }
     ]
 }

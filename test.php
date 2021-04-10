@@ -161,20 +161,36 @@ Usage:  test.php [args...]
 
     // I'm sorry to whoever is reading this
     if (!file_exists($isDirectorySet)) {
+        echo "Directory doesn't exists";
         exit(41);
     }
-    if ($isParseOnlySet && !(!file_exists($isJexamxmlOnlySet) || !file_exists($isJexamcfgOnlySet))) {
-        exit(41);
+    if ($isParseOnlySet) {
+        if (!(file_exists($isJexamxmlOnlySet) && file_exists($isJexamcfgOnlySet))) {
+            echo "Jexamxml files doesn't exists";
+            exit(41);
+        }
+        else if (!file_exists($isParseScriptSet)) {
+            echo "Parse script doesn't exist";
+            exit(41);
+        }
     }
-    if ($isIntOnlySet && !file_exists($isIntScriptSet)) {
-        exit(41);
+    if ($isIntOnlySet) {
+        if (!file_exists($isIntScriptSet)) {
+            echo "Interpret script doesn't exist";
+            exit(41);
+        }
     }
-    if ($isParseOnlySet && !file_exists($isParseScriptSet)) {
-        exit(41);
+    if (!$isParseOnlySet && !$isIntOnlySet) {
+        if (!file_exists($isParseScriptSet) && !file_exists($isIntScriptSet)) {
+            echo "Interpret script or Parse script doesn't exist";
+            exit(41);
+        }
+        if (!(file_exists($isJexamxmlOnlySet) && file_exists($isJexamcfgOnlySet))) {
+            echo "Jexamxml files doesn't exists";
+            exit(41);
+        }
     }
-    if ((!$isParseOnlySet && !$isIntOnlySet) && (!file_exists($isParseScriptSet) || !file_exists($isIntScriptSet))) {
-        exit(41);
-    }
+
     ///////
 
     return array(
@@ -453,7 +469,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            // echo "$fileName" . "\n";
+            echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
@@ -505,9 +521,12 @@ function main($argv)
                 fclose($outputPythonFile);
             }
             else {
+                // $lalalaNewFile = fopen("$filePath.xml", "w") or die("Unable to open file!");
                 $outputFile = tmpfile();
                 $pathOutput = stream_get_meta_data($outputFile)['uri'];
                 exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
+                // fwrite($lalalaNewFile, file_get_contents($pathOutput));
+                // fclose($lalalaNewFile);
 
                 if ($arguments["isParseOnly"]) {
                     if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
@@ -543,7 +562,7 @@ function main($argv)
                         $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
                         exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $pathOutput --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
                         $value["returnedValue"] = $returnedValue;
-                        // echo file_get_contents($pathPythonOutput);
+                        echo file_get_contents($pathPythonOutput);
                         if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
                             exec("diff $pathPythonOutput $filePath.out", $output, $returnedDiff);
 

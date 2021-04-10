@@ -24,6 +24,8 @@ class IPPCode21:
         indent_counter = 1
         elsed = False
         called_over_if = []
+        jumped = []
+        break_handler = []
 
         index = 0
         return_position = []
@@ -33,7 +35,17 @@ class IPPCode21:
                 index += 1
             elif instance.opcode == "jump":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
-                    index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
+                    if parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].end > parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start:
+                        if not index in jumped:
+                            code_string += indent_level + "while True:\n"
+                            indent_level += "    "
+                            jumped.append(index)
+                            index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
+                        else:
+                            index += 1
+                            jumped.pop()
+                    else:
+                        index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
                 else:
                     raise LabelDoesNotExists()
             elif instance.opcode == "jumpifeq" or instance.opcode == "jumpifneq":
@@ -44,18 +56,14 @@ class IPPCode21:
                         elsed = False
                         if return_position or called_over_if and called_over_if[-1] > index:
                             if instance.opcode == "jumpifneq":
-                                code_string += indent_level + \
-                                    "while memory['help_var1'] != memory['help_var2']:\n"
+                                code_string += indent_level + "while memory['help_var1'] != memory['help_var2']:\n"
                             else:
-                                code_string += indent_level + \
-                                    "while memory['help_var1'] == memory['help_var2']:\n"
+                                code_string += indent_level + "while memory['help_var1'] == memory['help_var2']:\n"
                         else:
                             if instance.opcode == "jumpifneq":
-                                code_string += indent_level + \
-                                    "if memory['help_var1'] != memory['help_var2']:\n"
+                                code_string += indent_level + "if memory['help_var1'] != memory['help_var2']:\n"
                             else:
-                                code_string += indent_level + \
-                                    "if memory['help_var1'] == memory['help_var2']:\n"
+                                code_string += indent_level + "if memory['help_var1'] == memory['help_var2']:\n"
 
                         indent_level += "    "
                         jumpif_inst[instance] = {
@@ -77,6 +85,8 @@ class IPPCode21:
                             indent_level = jumpif_inst[instance]["indent_level"]
                             code_string += indent_level[:-4] + "else:\n"
                         else:
+                            if jumped:
+                                code_string += indent_level + "break\n"
                             code_string += indent_level[:-4] + "else:\n"
                             elsed = True
                         jumpif_inst.pop(instance)
