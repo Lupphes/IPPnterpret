@@ -35,7 +35,7 @@ class IPPCode21:
                 index += 1
             elif instance.opcode == "jump":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
-                    if parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].end > parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start:
+                    if parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].end > parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start and index > parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start:
                         if not index in jumped:
                             code_string += indent_level + "while True:\n"
                             indent_level += "    "
