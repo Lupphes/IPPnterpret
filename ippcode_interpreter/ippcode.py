@@ -19,17 +19,17 @@ class IPPCode21:
         }
         header = "@wrap_with_logging\ndef main():\n"
         code_string = header
-        saved_index = []
+        saved_index = {}
         indent_level = "    "
+        indent_counter = 1
+        was_here = False
+        jumped_over = []
 
         index = 0
         return_position = []
         while index < parsed_code.program_length:
             instance = parsed_code.mangled_instructions["instructions"][index]
-            if instance is None:
-                index += 1
-                continue
-            elif instance.opcode == "label":
+            if instance is None or instance.opcode == "label":
                 index += 1
             elif instance.opcode == "jump":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
@@ -38,25 +38,42 @@ class IPPCode21:
                     raise LabelDoesNotExists()
             elif instance.opcode == "jumpifeq" or instance.opcode == "jumpifneq":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
-                    if not saved_index:
-                        code_string += indent_level
-                        code_string += f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
-
-                        code_string += indent_level
-                        if instance.opcode == "jumpifneq":
-                            code_string += "while memory['help_var1'] != memory['help_var2']:\n"
+                    if not instance in saved_index: 
+                        code_string += indent_level + f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
+                        was_here = False
+                        if return_position or jumped_over and jumped_over[-1] > index:
+                            if instance.opcode == "jumpifneq":
+                                code_string += indent_level + "while memory['help_var1'] != memory['help_var2']:\n"
+                            else:
+                                code_string += indent_level + "while memory['help_var1'] == memory['help_var2']:\n"
                         else:
-                            code_string += "while memory['help_var1'] == memory['help_var2']:\n"
-                        indent_level += "    "
+                            if instance.opcode == "jumpifneq":
+                                code_string += indent_level + "if memory['help_var1'] != memory['help_var2']:\n"
+                            else:
+                                code_string += indent_level + "if memory['help_var1'] == memory['help_var2']:\n"
 
-                        saved_index.append(index)
+                        indent_level += "    "
+                        saved_index[instance] = {
+                            "index": index, 
+                            "counter": indent_counter,
+                            "indent_level": indent_level
+                        }
+                        
+                        indent_counter += 1
                         resources[instance.mangled_name] = instance
                         index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
                     else:
-                        code_string += indent_level
-                        code_string += f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
-                        index = saved_index.pop()
-                        indent_level = indent_level[:-4]
+                        code_string += indent_level + f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
+                        index = saved_index[instance]["index"]
+                        indent_counter -= 1
+                             
+                        if was_here:
+                            indent_level = saved_index[instance]["indent_level"]
+                            code_string += indent_level[:-4] + "else:\n"
+                        else:
+                            code_string += indent_level[:-4] + "else:\n"
+                            was_here = True
+                        saved_index.pop(instance)  
                 else:
                     raise LabelDoesNotExists()
                 index += 1
@@ -64,23 +81,30 @@ class IPPCode21:
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
                     return_position.append(index)
                     index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
+                    if jumped_over:
+                        jumped_over.pop()
                 else:
                     raise LabelDoesNotExists()
                 index += 1
             elif instance.opcode == "return":
                 if return_position:
+                    jumped_over.append(index)
                     index = return_position.pop() + 1
                 else:
                     raise MissingValueOnStackError(
-                        "RETURN was executed without CALL")
+                        "RETURN was executed without CALL"
+                        )
             else:
                 resources[instance.mangled_name] = instance
-                code_string += indent_level
-                code_string += f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
+                code_string += indent_level + f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
                 index += 1
                 if instance.opcode == "exit":
                     break
+            if index >= parsed_code.program_length and saved_index:
+                max_index = max(saved_index.items(), key=lambda x: x[1]["counter"])
+                index = max_index[1]["index"]
 
+        code_string += indent_level + "pass\n"
         if code_string == header:
             code_string += "    pass\n"
         code_string += "main()"
