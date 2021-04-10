@@ -706,7 +706,6 @@ class Jump(Instruction):
 
 
 class JumpIfEq(ArgumentParser):
-    handler_function = "jump_if_handler"
     opcode = "jumpifeq"
 
     def __init__(self, tag):
@@ -797,3 +796,4 @@ class Break(Instruction):
 
     def run(self):
         return self.order
+

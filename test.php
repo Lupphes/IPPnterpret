@@ -469,7 +469,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            echo "$fileName" . "\n";
+            // echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
@@ -521,16 +521,16 @@ function main($argv)
                 fclose($outputPythonFile);
             }
             else {
-                // $lalalaNewFile = fopen("$filePath.xml", "w") or die("Unable to open file!");
+                // $XMLFileGenerate = fopen("$filePath.xml", "w") or die("Unable to open file!");
                 $outputFile = tmpfile();
                 $pathOutput = stream_get_meta_data($outputFile)['uri'];
                 exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
-                // fwrite($lalalaNewFile, file_get_contents($pathOutput));
-                // fclose($lalalaNewFile);
+                // fwrite($XMLFileGenerate, file_get_contents($pathOutput));
+                // fclose($XMLFileGenerate);
 
                 if ($arguments["isParseOnly"]) {
+                    $value["returnedValue"] = $returnedValue;
                     if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
-                        $value["returnedValue"] = $returnedValue;
                         exec("java -jar " . $arguments["jexamxmlPath"] . " $filePath.out $pathOutput /dev/null " . $arguments["jexamcfgPath"], $outputXML, $resultXML);
                         $value["outputCheck"] = $resultXML;
                         if ($resultXML == 0) {
@@ -562,7 +562,7 @@ function main($argv)
                         $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
                         exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $pathOutput --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
                         $value["returnedValue"] = $returnedValue;
-                        echo file_get_contents($pathPythonOutput);
+                        // echo file_get_contents($pathPythonOutput);
                         if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
                             exec("diff $pathPythonOutput $filePath.out", $output, $returnedDiff);
 
@@ -585,6 +585,7 @@ function main($argv)
                         fclose($outputPythonFile);
                     }
                     else {
+                        $value["returnedValue"] = $returnedValue;
                         if ($returnedValue == $testedReturnValue) {
                             $value["outputCheck"] = -1;
                             array_push($tests["parse"]["passed"], $value);

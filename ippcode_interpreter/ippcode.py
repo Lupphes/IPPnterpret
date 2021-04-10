@@ -3,6 +3,7 @@ from .parser import Parser
 from .memory import Memory
 from .utils import wrap_with_logging
 from .exception import LabelDoesNotExists, MissingValueOnStackError, FileRestrictedError
+from .runtime_handler import RuntimeHandler
 
 
 class IPPCode21:
@@ -14,14 +15,14 @@ class IPPCode21:
 
         active_label = "@"
         resources = {
-            "memory": Memory(content),
+            "rth": RuntimeHandler(content),
             "wrap_with_logging": wrap_with_logging
         }
         header = "@wrap_with_logging\ndef main():\n"
         code_string = header
         jumpif_inst = {}
         indent_level = "    "
-        indent_counter = 1
+        level_counter = 1
         elsed = False
         called_over_if = []
         jumped = []
@@ -35,51 +36,63 @@ class IPPCode21:
                 index += 1
             elif instance.opcode == "jump":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
-                    if parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].end > parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start and index > parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start:
+                    label_end = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].end
+                    label_start = parsed_code.mangled_instructions[
+                        "labels"][instance.args[0]["value"]].start
+
+                    if label_end > label_start and index > label_start:
                         if not index in jumped:
                             code_string += indent_level + "while True:\n"
                             indent_level += "    "
                             jumped.append(index)
-                            index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
+                            index = label_start
                         else:
                             index += 1
                             jumped.pop()
+                            break
                     else:
-                        index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
+                        index = label_start
                 else:
                     raise LabelDoesNotExists()
             elif instance.opcode == "jumpifeq" or instance.opcode == "jumpifneq":
                 if instance.args[0]["value"] in parsed_code.mangled_instructions["labels"]:
+                    label_end = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].end
+                    label_start = parsed_code.mangled_instructions[
+                        "labels"][instance.args[0]["value"]].start
+
                     if not instance in jumpif_inst:
-                        code_string += indent_level + \
-                            f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
                         elsed = False
                         if return_position or called_over_if and called_over_if[-1] > index:
                             if instance.opcode == "jumpifneq":
-                                code_string += indent_level + "while memory['help_var1'] != memory['help_var2']:\n"
+                                code_string += indent_level + \
+                                    f"while rth.handle_compare({instance.mangled_name}):\n"
                             else:
-                                code_string += indent_level + "while memory['help_var1'] == memory['help_var2']:\n"
+                                code_string += indent_level + \
+                                    f"while rth.handle_compare({instance.mangled_name}):\n"
                         else:
                             if instance.opcode == "jumpifneq":
-                                code_string += indent_level + "if memory['help_var1'] != memory['help_var2']:\n"
+                                code_string += indent_level + \
+                                    f"if rth.handle_compare({instance.mangled_name}):\n"
                             else:
-                                code_string += indent_level + "if memory['help_var1'] == memory['help_var2']:\n"
+                                code_string += indent_level + \
+                                    f"if rth.handle_compare({instance.mangled_name}):\n"
 
                         indent_level += "    "
                         jumpif_inst[instance] = {
                             "index": index,
-                            "counter": indent_counter,
+                            "level": level_counter,
                             "indent_level": indent_level
                         }
 
-                        indent_counter += 1
+                        level_counter += 1
                         resources[instance.mangled_name] = instance
-                        index = parsed_code.mangled_instructions["labels"][instance.args[0]["value"]].start
+                        index = label_start
                     else:
-                        code_string += indent_level + \
-                            f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
                         index = jumpif_inst[instance]["index"]
-                        indent_counter -= 1
+                        level_counter -= 1
+
+                        if label_end + 1 == parsed_code.program_length:
+                            code_string += indent_level + f"pass\n"
 
                         if elsed:
                             indent_level = jumpif_inst[instance]["indent_level"]
@@ -113,13 +126,15 @@ class IPPCode21:
             else:
                 resources[instance.mangled_name] = instance
                 code_string += indent_level + \
-                    f"memory.{instance.handler_function}({instance.mangled_name}.run())\n"
+                    f"rth.mem.{instance.handler_function}({instance.mangled_name}.run())\n"
                 index += 1
                 if instance.opcode == "exit":
                     break
             if index >= parsed_code.program_length and jumpif_inst:
-                max_index = max(jumpif_inst.items(),
-                                key=lambda x: x[1]["counter"])
+                max_index = max(
+                    jumpif_inst.items(),
+                    key=lambda x: x[1]["level"]
+                )
                 index = max_index[1]["index"]
 
         code_string += indent_level + "pass\n"

@@ -2,7 +2,11 @@ import typing
 import re
 import sys
 from .utils import wrap_with_logging
-from .exception import FrameNotFoundError, UndefinedVariableError, VariableRedefinitionError, VariableIsNotInitializedError, VariableTypeError, IndexOutOfRangeError, DivisionByZeroError, OperandError, MissingValueOnStackError
+from .exception import (
+    FrameNotFoundError, UndefinedVariableError, VariableRedefinitionError, 
+    VariableIsNotInitializedError, VariableTypeError, 
+    IndexOutOfRangeError, DivisionByZeroError, OperandError, MissingValueOnStackError
+    )
 
 
 class Memory(dict):
@@ -430,20 +434,6 @@ class Memory(dict):
             result["value"] = var["first"]["type"]
 
         self.write_memory_values(var=var, result_var=result)
-
-    def jump_if_handler(self, passed_args: dict) -> None:
-        var = self.unpack_memory_values(
-            args=passed_args,
-            result_key=None,
-        )
-        if var["first"]["type"] == var["second"]["type"]:
-            self["help_var1"] = var["first"]["value"]
-            self["help_var2"] = var["second"]["value"]
-        elif var["first"]["type"] == "nil" or var["second"]["type"] == "nil":
-            self["help_var1"] = None if var["first"]["value"] == "nil" else var["first"]["value"]
-            self["help_var2"] = None if var["second"]["value"] == "nil" else var["first"]["value"]
-        else:
-            raise VariableTypeError()
 
     def exit_handler(self, var: dict) -> None:
         self.unpack_memory_values({"first": var}, None, ["first"])
