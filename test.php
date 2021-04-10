@@ -408,7 +408,7 @@ function generateWeb($tests, $mode)
     
     </html>";
 
-    echo $defaultHTML;
+    // echo $defaultHTML;
     createFile("index.html", $defaultHTML);
 
     return;
@@ -453,7 +453,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            echo "$fileName" . "\n";
+            // echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
@@ -505,12 +505,9 @@ function main($argv)
                 fclose($outputPythonFile);
             }
             else {
-                // $lalalaNewFile = fopen("$filePath.xml", "w") or die("Unable to open file!");
                 $outputFile = tmpfile();
                 $pathOutput = stream_get_meta_data($outputFile)['uri'];
                 exec("php " . $arguments["parseScriptPath"] . " < $fileName > $pathOutput", $output, $returnedValue);
-                // fwrite($lalalaNewFile, file_get_contents($pathOutput));
-                // fclose($lalalaNewFile);
 
                 if ($arguments["isParseOnly"]) {
                     if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
@@ -535,11 +532,18 @@ function main($argv)
                 }
                 else {
                     if ($returnedValue == 0) {
+                        array_push($tests["parse"]["passed"], [
+                            "filePath" => $filePath, 
+                            "returnedValue" => $returnedValue, 
+                            "expectedReturn" => 0, 
+                            "outputCheck" => -1
+                        ]);
+
                         $outputPythonFile = tmpfile();
                         $pathPythonOutput = stream_get_meta_data($outputPythonFile)['uri'];
                         exec("python3.8 " . $arguments["interpretScriptPath"] . " --source $pathOutput --input $filePath.in > $pathPythonOutput", $output, $returnedValue);
                         $value["returnedValue"] = $returnedValue;
-                        echo file_get_contents($pathPythonOutput);
+                        // echo file_get_contents($pathPythonOutput);
                         if ($returnedValue == $testedReturnValue && $returnedValue == 0) {
                             exec("diff $pathPythonOutput $filePath.out", $output, $returnedDiff);
 

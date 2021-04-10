@@ -755,7 +755,7 @@ class JumpIfNeq(ArgumentParser):
         super().__init__(tag=tag)
 
 
-class Exit(Instruction):
+class Exit(ArgumentParser):
     handler_function = "exit_handler"
     opcode = "exit"
 
@@ -769,16 +769,8 @@ class Exit(Instruction):
         ]
         super().__init__(tag=tag)
 
-    def run(self):
-        return {
-            "scope": self.args[0]["value"].split("@")[0] if self.args[0]["type"] == "var" else None,
-            "name": self.args[0]["value"].split("@")[1] if self.args[0]["type"] == "var" else None,
-            "type": None if self.args[0]["type"] == "var" else self.args[0]["type"],
-            "value": None if self.args[0]["type"] == "var" else self.args[0]["value"]
-        }
-
-
 # Debug tools
+
 
 class DPrint(ArgumentParser):
     handler_function = "dprint_handler"
