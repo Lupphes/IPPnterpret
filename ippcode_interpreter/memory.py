@@ -18,9 +18,7 @@ class Memory(dict):
             "LF": [],
             "stack": [],
             "stdin": user_input,
-            "input_set": False if user_input else True,
-            "help_var1": None,
-            "help_var2": None
+            "input_set": False if user_input else True
         })
 
     def variable_exists(self, var: dict) -> bool:
