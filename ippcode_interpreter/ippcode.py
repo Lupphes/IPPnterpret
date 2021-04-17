@@ -14,8 +14,7 @@ class IPPCode21:
         content = self.open_file(user_input)
 
         resources = {
-            "rth": RuntimeHandler(content),
-            "wrap_with_logging": wrap_with_logging
+            "rth": RuntimeHandler(content)
         }
         
         index = 0
@@ -61,7 +60,6 @@ class IPPCode21:
             else:
                 resources[instance.mangled_name] = instance
                 eval(f"rth.mem.{instance.handler_function}({instance.mangled_name}.run())", resources)
-                # print(resources["rth"].mem)
                 index += 1
 
     def open_file(self, user_input: str) -> str:

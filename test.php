@@ -185,10 +185,6 @@ Usage:  test.php [args...]
             echo "Interpret script or Parse script doesn't exist";
             exit(41);
         }
-        if (!(file_exists($isJexamxmlOnlySet) && file_exists($isJexamcfgOnlySet))) {
-            echo "Jexamxml files doesn't exists";
-            exit(41);
-        }
     }
 
     ///////
@@ -424,8 +420,8 @@ function generateWeb($tests, $mode)
     
     </html>";
 
-    echo $defaultHTML;
-    // createFile("index.html", $defaultHTML);
+    // echo $defaultHTML;
+    createFile("index.html", $defaultHTML);
 
     return;
 }
@@ -469,7 +465,7 @@ function main($argv)
 
     foreach ($it as $fileName => $fileInfo) {
         if ($fileInfo->getExtension() == 'src') {
-            // echo "$fileName" . "\n";
+            echo "$fileName" . "\n";
             $filePath = $fileInfo->getPath() . "/" . $fileInfo->getBasename('.src');
             if (!file_exists($filePath . ".out")) {
                 createFile($filePath . ".out", "");
